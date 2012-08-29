@@ -107,6 +107,50 @@ void get_stdev_test() {
     CU_ASSERT_DOUBLE_EQUAL(b, 328.106394, 0.0001);
 }
 
+void fft2D_test() {
+    image_rgb* rgb = load_rgb_image("r2.jpg", 1);
+    int i, j;
+    int width = rgb->width, height = rgb->height;
+    int wh = width*height;
+    float* gray = (float*)malloc(sizeof(float)*width*height);
+    
+    for (i = 0; i < height; ++i) {
+        for (j = 0; j < width; ++j) {
+            gray[i*width+j] = (0.299*rgb->r[i*width+j] + 0.587*rgb->g[i*width+j] + 0.114*rgb->b[i*width+j]) / 255.f;
+        }
+    }
+    
+    float *myFFT = fft2D(gray, width, height);
+    fftshift(myFFT, width, height);
+    
+    float real[16384], imag[16384];
+    
+    for (i = 0; i < wh; ++i) {
+        real[i] = myFFT[i*2];
+        imag[i] = myFFT[i*2+1];
+    }
+    
+    float *angle = get_phase_angle(myFFT, width, height);
+    
+    
+    FILE *fp;
+    fp = fopen("out.txt", "w");
+    for (i = 0; i < height; ++i) {
+        for (j = 0; j < width; ++j) {
+            fprintf(fp, "%f\t", angle[i*width+j]);
+        }
+        fprintf(fp, "\n");
+    }
+    fclose(fp);
+    
+    float *im = ifft2D(myFFT, width, height);
+    /*
+    for (i = 0; i < wh; ++i) {
+        printf("%f\n", im[i] - gray[i]);
+    }
+    */
+}
+
 int main() {
     CU_pSuite pSuite = NULL;
 
@@ -130,7 +174,8 @@ int main() {
             (NULL == CU_add_test(pSuite, "amean_test", amean_test)) ||
             (NULL == CU_add_test(pSuite, "sort_test", sort_test))   ||
             (NULL == CU_add_test(pSuite, "get_arc_length_test", get_arc_length_test)) ||
-            (NULL == CU_add_test(pSuite, "get_stdev_test", get_stdev_test)) 
+            (NULL == CU_add_test(pSuite, "get_stdev_test", get_stdev_test)) ||
+            (NULL == CU_add_test(pSuite, "fft2D_test", fft2D_test))
        ) {
         CU_cleanup_registry();
         return CU_get_error();

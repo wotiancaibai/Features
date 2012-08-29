@@ -1,4 +1,5 @@
 
+#include <malloc.h>
 #include <math.h>
 #include "tools.h"
 
@@ -145,4 +146,224 @@ float get_arc_length(float a, float b) {
         r = 1 - r;
     
     return r;
+}
+
+void fft1D(float *arrayBuf, int n) {
+	int i, k, r;
+	float *buf1 = (float*)malloc(sizeof(float) * n * 2);
+	for(i=0;i<n*2;i++)
+		buf1[i]=arrayBuf[i];
+
+	float *buf2 = (float*)malloc(sizeof(float)*n*2);
+	int t1,t2;
+	for(r=1;pow(2,r)<n;r++){
+		t1=pow(2,r);
+		t2=pow(2,r-1);
+		for(k=0;k<t1;k++){
+			for(i=0;i<n/t1;i++){				
+				buf2[k*n/t1*2+i*2+0]=buf1[k/2*n/t2*2+(i*2+k%2)*2+0];
+				buf2[k*n/t1*2+i*2+1]=buf1[k/2*n/t2*2+(i*2+k%2)*2+1];
+			}
+		}
+		for(i=0;i<n*2;i++)
+			buf1[i]=buf2[i];
+	}
+	float c,s;
+	for(r=1;pow(2,r)<=n;r++){
+		t1=pow(2,r);
+		for(k=0;k<n/t1;k++){
+			for(i=t1/2;i<t1;i++){
+				c=cos(2*3.1415927*(-i+t1/2+n/2)/t1);				
+				s=sin(2*3.1415927*(-i+t1/2+n/2)/t1);
+				buf1[k*t1*2+i*2+0]= buf2[k*t1*2+i*2+0]*c - buf2[k*t1*2+i*2+1]*s;				
+				buf1[k*t1*2+i*2+1]=buf2[k*t1*2+i*2+1]*c+buf2[k*t1*2+i*2+0]*s;
+			}
+		}
+		
+		for(k=0; k<n/t1; k++){
+			for(i=0;i<t1/2;i++){
+				buf2[k*t1*2+i*2+0]= buf1[k*t1*2+i*2+0]+buf1[k*t1*2+(i+t1/2)*2+0];
+				buf2[k*t1*2+i*2+1]= buf1[k*t1*2+i*2+1]+buf1[k*t1*2+(i+t1/2)*2+1];
+			}
+			for(i=t1/2;i<t1;i++){
+				buf2[k*t1*2+i*2+0]= buf1[k*t1*2+(i-t1/2)*2+0]-buf1[k*t1*2+i*2+0];
+				buf2[k*t1*2+i*2+1]= buf1[k*t1*2+(i-t1/2)*2+1]-buf1[k*t1*2+i*2+1];
+			}
+		}
+
+		for(i=0;i<n*2;i++)
+			buf1[i]=buf2[i];
+	}
+	
+	for(i=0;i<n*2;i++)
+			arrayBuf[i]=buf2[i];
+
+	free(buf2);
+	free(buf1);
+}
+
+float* fft2D(float* imgBuf, int width, int height) {
+	int i, u, v;
+	float *buf=(float*)malloc(sizeof(float)*width*height*2);
+	for(i=0;i<width*height;i++){
+		buf[i*2+0]=imgBuf[i];
+		buf[i*2+1]=0;
+	}
+
+	float *array=(float*)malloc(sizeof(float)*height*2);
+	for(u=0;u<width;u++){
+		for(v=0;v<height;v++){
+			array[v*2+0]=buf[v*width*2+u*2+0];
+			array[v*2+1]=buf[v*width*2+u*2+1];
+		}
+		fft1D(array, width);
+		for(v=0;v<height;v++){
+			buf[v*width*2+u*2+0]=array[v*2+0];
+			buf[v*width*2+u*2+1]=array[v*2+1];
+		}
+	}
+	free(array);
+
+	for(v=0;v<height;v++){
+		fft1D(buf+v*width*2, width);
+	}
+
+    return buf;
+}
+
+void* fftshift(float* fftBuf, int width, int height) {
+    int i, j;
+    float r_tmp, i_tmp;
+    for(i = 0; i < height; ++i) {
+		for(j = 0; j < width/2; j++) {
+            r_tmp = fftBuf[2*(i*width+j)];
+            i_tmp = fftBuf[2*(i*width+j)+1];
+            fftBuf[2*(i*width+j)] = fftBuf[2*(i*width+j + (width+1)/2)];
+            fftBuf[2*(i*width+j)+1] = fftBuf[2*(i*width+j + (width+1)/2)+1];
+            fftBuf[2*(i*width+j + (width+1)/2)] = r_tmp;
+            fftBuf[2*(i*width+j + (width+1)/2)+1] = i_tmp;
+		}
+    }
+    for(j = 0; j < width; ++j) {
+		for(i = 0; i < height/2; i++) {
+            r_tmp = fftBuf[2*(i*width+j)];
+            i_tmp = fftBuf[2*(i*width+j)+1];
+            fftBuf[2*(i*width+j)] = fftBuf[2*((i+(height+1)/2)*width+j)];
+            fftBuf[2*(i*width+j)+1] = fftBuf[2*((i+(height+1)/2)*width+j)+1];
+            fftBuf[2*((i+(height+1)/2)*width+j)] = r_tmp;
+            fftBuf[2*((i+(height+1)/2)*width+j)+1] = i_tmp;
+		}
+    }
+}
+
+void ifft1D(float *arrayBuf, int n) {
+	int i, k, r;
+	float *buf1=(float*)malloc(sizeof(float)*n*2);
+	for(i=0;i<n*2;i++)
+		buf1[i]=arrayBuf[i];
+
+	float *buf2=(float*)malloc(sizeof(float)*n*2);
+	int t1,t2;
+	for(r=1;pow(2,r)<n;r++){
+		t1=pow(2,r);
+		t2=pow(2,r-1);
+		for(k=0;k<t1;k++){
+			for(i=0;i<n/t1;i++){				
+				buf2[k*n/t1*2+i*2+0]=buf1[k/2*n/t2*2+(i*2+k%2)*2+0];
+				buf2[k*n/t1*2+i*2+1]=buf1[k/2*n/t2*2+(i*2+k%2)*2+1];
+			}
+		}
+		for(i=0;i<n*2;i++)
+			buf1[i]=buf2[i];
+	}
+	float c,s;
+	for(r=1;pow(2,r)<=n;r++){
+		t1=pow(2,r);
+		for(k=0;k<n/t1;k++){
+			for(i=t1/2;i<t1;i++){
+				c=cos(2*3.1415927*(-i+t1/2)/t1);				
+				s=sin(2*3.1415927*(-i+t1/2)/t1);
+				buf1[k*t1*2+i*2+0]= buf2[k*t1*2+i*2+0]*c - buf2[k*t1*2+i*2+1]*s;				
+				buf1[k*t1*2+i*2+1]=buf2[k*t1*2+i*2+1]*c+buf2[k*t1*2+i*2+0]*s;
+			}
+		}
+		
+		for(k=0; k<n/t1; k++){
+			for(i=0;i<t1/2;i++){
+				buf2[k*t1*2+i*2+0]= buf1[k*t1*2+i*2+0]+buf1[k*t1*2+(i+t1/2)*2+0];
+				buf2[k*t1*2+i*2+1]= buf1[k*t1*2+i*2+1]+buf1[k*t1*2+(i+t1/2)*2+1];
+			}
+			for(i=t1/2;i<t1;i++){
+				buf2[k*t1*2+i*2+0]= buf1[k*t1*2+(i-t1/2)*2+0]-buf1[k*t1*2+i*2+0];
+				buf2[k*t1*2+i*2+1]= buf1[k*t1*2+(i-t1/2)*2+1]-buf1[k*t1*2+i*2+1];
+			}
+		}
+
+		for(i=0;i<n*2;i++)
+			buf1[i]=buf2[i];
+	}
+	
+	for(i=0;i<n*2;i++)
+		arrayBuf[i]=buf2[i];
+
+	free(buf2);
+	free(buf1);
+}
+
+float* ifft2D(float* fftBuf, int width, int height) {	
+	if(!fftBuf) {
+		return 0;
+    }
+
+	int i, u, v;
+	float *buf=fftBuf;
+	for(i=0;i<width*height;i++)
+		buf[i*2+1] = -buf[i*2+1];
+
+	float *array=(float*)malloc(sizeof(float)*height*2);
+	for(u=0;u<width;u++){
+		for(v=0;v<height;v++){
+			array[v*2+0]=buf[v*width*2+u*2+0];
+			array[v*2+1]=buf[v*width*2+u*2+1];
+		}
+		ifft1D(array, width);
+		for(v=0;v<height;v++){
+			buf[v*width*2+u*2+0]=array[v*2+0];
+			buf[v*width*2+u*2+1]=array[v*2+1];
+		}
+	}
+	free(array);
+
+	for(v=0;v<height;v++){
+		ifft1D(buf+v*width*2, width);
+	}
+
+	float *img=(float*)malloc(sizeof(float)*width*height);
+	for(i=0;i<width*height;i++){
+		float j=sqrt(buf[i*2+0]*buf[i*2+0]+buf[i*2+1]*buf[i*2+1]);
+		img[i]= j/(width*height);
+	}
+
+	free(buf);
+	
+    return img;
+
+}
+
+float* get_phase_angle(float* fftBuf, int width, int height) {
+    int i, j;
+    float* angle = (float*)malloc(sizeof(float)*width*height);
+    
+    for (i = 0; i < height; ++i) {
+        for (j = 0; j < width; ++j) {
+            angle[i*width+j] = atan2(fftBuf[2*(i*width+j)+1], fftBuf[2*(i*width+j)]);
+
+        }
+    }
+    
+    return angle;
+}
+
+float* get_log_amplitude(float* fftBuf, int width, int height) {
+    
 }
