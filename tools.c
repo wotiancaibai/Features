@@ -357,7 +357,6 @@ float* get_phase_angle(float* fftBuf, int width, int height) {
     for (i = 0; i < height; ++i) {
         for (j = 0; j < width; ++j) {
             angle[i*width+j] = atan2(fftBuf[2*(i*width+j)+1], fftBuf[2*(i*width+j)]);
-
         }
     }
     
@@ -365,5 +364,51 @@ float* get_phase_angle(float* fftBuf, int width, int height) {
 }
 
 float* get_log_amplitude(float* fftBuf, int width, int height) {
+    int i, j;
+    float* amplitude = (float*)malloc(sizeof(float)*width*height);
     
+    for (i = 0; i < height; ++i) {
+        for (j = 0; j < width; ++j) {
+            amplitude[i*width+j] = log(sqrt(fftBuf[2*(i*width+j)+1]*fftBuf[2*(i*width+j)+1] + fftBuf[2*(i*width+j)]*fftBuf[2*(i*width+j)]));
+        }
+    }
+    
+    return amplitude;
+}
+
+void mean_filter(float* data, int width, int height) {
+    int i, j, k, l;
+    float tempData[height+2][width+2];
+    
+    for (i = 0; i < height; ++i) {
+        for (j = 0; j < width; ++j) {
+            tempData[i+1][j+1] = data[i*width+j];
+        }
+    }
+    for (i = 0; i < height; ++i) {
+        tempData[i+1][0] = data[i*width];
+        tempData[i+1][width+1] = data[i*width+width-1];
+    }
+    for (j = 0; j < width; ++j) {
+        tempData[0][j+1] = data[j];
+        tempData[height+1][j+1] = data[(height-1)*width+j];
+    }
+    // set the corners
+    tempData[0][0]              = data[0];
+    tempData[0][width+1]        = data[width-1];
+    tempData[height+1][0]       = data[(height-1)*width];
+    tempData[height+1][width+1] = data[height*width-1];
+    
+    double tmp;
+    for (i = 0; i < height; ++i) {
+        for (j = 0; j < width; ++j) {
+            tmp = 0;
+            for (k = i; k < i+3; ++k) {
+                for (l = j; l < j+3; ++l) {
+                    tmp += tempData[k][l];
+                }
+            }
+            data[i*width+j] = tmp/9;
+        }
+    }
 }
