@@ -131,13 +131,13 @@ void fft2D_test() {
     }
     
     float *angle = get_phase_angle(myFFT, width, height);
-    
+    float *amplitude = get_log_amplitude(myFFT, width, height);
     
     FILE *fp;
     fp = fopen("out.txt", "w");
     for (i = 0; i < height; ++i) {
         for (j = 0; j < width; ++j) {
-            fprintf(fp, "%f\t", angle[i*width+j]);
+            fprintf(fp, "%f\t", amplitude[i*width+j]);
         }
         fprintf(fp, "\n");
     }
@@ -149,6 +149,33 @@ void fft2D_test() {
         printf("%f\n", im[i] - gray[i]);
     }
     */
+    
+}
+
+void mean_filter_test() {
+    float img[9] = {3, 2, 4, 
+                    5, 7, 1,
+                    4, 8, 2
+                   };
+    float* test_img = mean_filter(img, 3, 3);
+    CU_ASSERT_DOUBLE_EQUAL(test_img[0], 3.66667, 0.00001);
+    CU_ASSERT_DOUBLE_EQUAL(test_img[2], 3.22222, 0.00001);
+    CU_ASSERT_DOUBLE_EQUAL(test_img[4], 4.00000, 0.00001);
+    CU_ASSERT_DOUBLE_EQUAL(test_img[6], 5.44444, 0.00001);
+    CU_ASSERT_DOUBLE_EQUAL(test_img[8], 3.66667, 0.00001);
+}
+
+void gaussian_filter_test() {
+    float img[9] = {3, 2, 4, 
+                    5, 7, 1,
+                    4, 8, 2
+                   };
+    float* test_img = gaussian_filter(img, 3, 3);
+    CU_ASSERT_DOUBLE_EQUAL(test_img[0], 0.83386, 0.00001);
+    CU_ASSERT_DOUBLE_EQUAL(test_img[2], 0.80044, 0.00001);
+    CU_ASSERT_DOUBLE_EQUAL(test_img[4], 0.96705, 0.00001);
+    CU_ASSERT_DOUBLE_EQUAL(test_img[6], 0.87486, 0.00001);
+    CU_ASSERT_DOUBLE_EQUAL(test_img[8], 0.83482, 0.00001);
 }
 
 int main() {
@@ -175,7 +202,9 @@ int main() {
             (NULL == CU_add_test(pSuite, "sort_test", sort_test))   ||
             (NULL == CU_add_test(pSuite, "get_arc_length_test", get_arc_length_test)) ||
             (NULL == CU_add_test(pSuite, "get_stdev_test", get_stdev_test)) ||
-            (NULL == CU_add_test(pSuite, "fft2D_test", fft2D_test))
+            (NULL == CU_add_test(pSuite, "fft2D_test", fft2D_test)) ||
+            (NULL == CU_add_test(pSuite, "mean_filter_test", mean_filter_test)) ||
+            (NULL == CU_add_test(pSuite, "gaussian_filter_test", gaussian_filter_test))
        ) {
         CU_cleanup_registry();
         return CU_get_error();

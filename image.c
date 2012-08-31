@@ -321,3 +321,58 @@ int* get_hue_histogram(image_hsv* hsv) {
     
     return histogram;
 }
+
+float *get_saliency_map(image_rgb* rgb) { 
+    int i, j;
+    int width = rgb->width, height = rgb->height;
+    int wh = width*height;
+    float* gray = (float*)malloc(sizeof(float)*width*height);
+    
+    for (i = 0; i < height; ++i) {
+        for (j = 0; j < width; ++j) {
+            gray[i*width+j] = (0.299*rgb->r[i*width+j] + 0.587*rgb->g[i*width+j] + 0.114*rgb->b[i*width+j]) / 255.f;
+        }
+    }
+    
+    float* myFFT = fft2D(gray, width, height);
+    fftshift(myFFT, width, height); // transfer the 0 frequency to the center of the image
+    
+    float* myLogAmplitude = get_log_amplitude(myFFT, width, height);
+    float* myPhase = get_phase_angle(myFFT, width, height);
+    float* img_avg_filtered = mean_filter(myLogAmplitude, width, height);
+    
+
+    float mySpectralResidual;
+    float* buf = (float*)malloc(sizeof(float)*wh*2);
+    for (i = 0; i < wh; ++i) {
+        mySpectralResidual = myLogAmplitude[i] - img_avg_filtered[i];
+        buf[2*i] = exp(mySpectralResidual)*cos(myPhase[i]); 
+        buf[2*i+1] = exp(mySpectralResidual)*sin(myPhase[i]);
+    }
+    
+    float* saliency = ifft2D(buf, width, height);
+    for (i = 0; i < wh; ++i) {
+        saliency[i] = saliency[i]*saliency[i];
+    }
+    
+    float* saliencyMap = gaussian_filter(saliency, width, height);
+    
+    float max = amax(saliencyMap, wh), min = amin(saliencyMap, wh);
+    float dif = max - min;
+    
+    for (i = 0; i < wh; ++i) {
+        saliencyMap[i] = (saliencyMap[i] - min) / dif;
+    }
+    
+    
+    free(gray);
+    free(myFFT);
+    free(myLogAmplitude);
+    free(myPhase);
+    free(img_avg_filtered);
+    free(buf);
+    free(saliency);
+    
+    return saliencyMap;
+}
+

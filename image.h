@@ -67,5 +67,7 @@ int* get_hsv_histogram(image_hsv* hsv); ///////////////////////
 // get hue histogram
 int* get_hue_histogram(image_hsv* hsv); // tested
 
+float *get_saliency_map(image_rgb* rgb);
+
 #endif	/* IMAGE_H */
 

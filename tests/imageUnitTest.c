@@ -192,6 +192,23 @@ void get_histogram_test() { // gray_histogram & rgb_histogram & hue_histogram
     
 }
 
+void get_saliency_map_test() {
+    image_rgb* rgb = load_rgb_image("r2.jpg", 1);
+    int i, j;
+    int width = rgb->width, height = rgb->height;
+    FILE *fp = fopen("out.txt", "w");
+    
+    float *saliencyMap = get_saliency_map(rgb);
+    
+    for (i = 0; i < height; ++i) {
+        for (j = 0; j < width; ++j) {
+            fprintf(fp, "%f\t", saliencyMap[i*width+j]);
+        }
+        fprintf(fp, "\n");
+    }
+    fclose(fp);
+}
+
 int main() {
     CU_pSuite pSuite = NULL;
 
@@ -210,7 +227,8 @@ int main() {
     if ((NULL == CU_add_test(pSuite, "testRgb2gray", testRgb2gray)) ||
         (NULL == CU_add_test(pSuite, "testRgb2hsl", testRgb2hsl)) ||
         (NULL == CU_add_test(pSuite, "testRgb2hsv", testRgb2hsv)) ||
-        (NULL == CU_add_test(pSuite, "get_histogram_test", get_histogram_test))
+        (NULL == CU_add_test(pSuite, "get_histogram_test", get_histogram_test)) ||
+        (NULL == CU_add_test(pSuite, "get_saliency_map_test", get_saliency_map_test))
        ){
         CU_cleanup_registry();
         return CU_get_error();

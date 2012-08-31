@@ -344,11 +344,8 @@ float* ifft2D(float* fftBuf, int width, int height) {
 		float j=sqrt(buf[i*2+0]*buf[i*2+0]+buf[i*2+1]*buf[i*2+1]);
 		img[i]= j/(width*height);
 	}
-
-	free(buf);
 	
     return img;
-
 }
 
 float* get_phase_angle(float* fftBuf, int width, int height) {
@@ -417,7 +414,7 @@ float* mean_filter(float* data, int width, int height) {
     return filtered_data;
 }
 
-float* gassian_filter(float* data, int width, int height) {
+float* gaussian_filter(float* data, int width, int height) {
     float templates[9][9] = {   {0.0022759,0.0039843,0.0059439,0.0075562,0.0081855,0.0075562,0.0059439,0.0039843,0.0022759},
                                 {0.0039843,0.0069753,0.010406,0.013228,0.01433,0.013228,0.010406,0.0069753,0.0039843},
                                 {0.0059439,0.010406,0.015524,0.019735,0.021378,0.019735,0.015524,0.010406,0.0059439},
