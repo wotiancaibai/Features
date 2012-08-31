@@ -33,13 +33,19 @@ void fft1D(float *arrayBuf, int n); // tested
 
 float* fft2D(float* imgBuf, int width, int height); // tested
 
-void* fftshift(float* fftBuf, int width, int height);
+void* fftshift(float* fftBuf, int width, int height); // tested
 
 void ifft1D(float *arrayBuf, int n);
 
 float* ifft2D(float* fftBuf, int width, int height);
 
-float* get_phase_angle(float* fftBuf, int width, int height);
+float* get_phase_angle(float* fftBuf, int width, int height); // tested
+
+float* get_log_amplitude(float* fftBuf, int width, int height); // tested
+
+float* mean_filter(float* data, int width, int height); // tested
+
+float* gaussian_filter(float* data, int width, int height); // tested
 
 #endif	/* TOOLS_H */
 
