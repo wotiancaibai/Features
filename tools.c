@@ -1,5 +1,6 @@
 
 #include <malloc.h>
+#include <memory.h>
 #include <math.h>
 #include "tools.h"
 
@@ -376,7 +377,7 @@ float* get_log_amplitude(float* fftBuf, int width, int height) {
     return amplitude;
 }
 
-void mean_filter(float* data, int width, int height) {
+float* mean_filter(float* data, int width, int height) {
     int i, j, k, l;
     float tempData[height+2][width+2];
     
@@ -400,6 +401,7 @@ void mean_filter(float* data, int width, int height) {
     tempData[height+1][width+1] = data[height*width-1];
     
     double tmp;
+    float* filtered_data = (float*)malloc(sizeof(float)*width*height);
     for (i = 0; i < height; ++i) {
         for (j = 0; j < width; ++j) {
             tmp = 0;
@@ -408,7 +410,50 @@ void mean_filter(float* data, int width, int height) {
                     tmp += tempData[k][l];
                 }
             }
-            data[i*width+j] = tmp/9;
+            filtered_data[i*width+j] = tmp/9;
         }
     }
+    
+    return filtered_data;
+}
+
+float* gassian_filter(float* data, int width, int height) {
+    float templates[9][9] = {   {0.0022759,0.0039843,0.0059439,0.0075562,0.0081855,0.0075562,0.0059439,0.0039843,0.0022759},
+                                {0.0039843,0.0069753,0.010406,0.013228,0.01433,0.013228,0.010406,0.0069753,0.0039843},
+                                {0.0059439,0.010406,0.015524,0.019735,0.021378,0.019735,0.015524,0.010406,0.0059439},
+                                {0.0075562,0.013228,0.019735,0.025088,0.027177,0.025088,0.019735,0.013228,0.0075562},
+                                {0.0081855,0.01433,0.021378,0.027177,0.02944,0.027177,0.021378,0.01433,0.0081855},
+                                {0.0075562,0.013228,0.019735,0.025088,0.027177,0.025088,0.019735,0.013228,0.0075562},
+                                {0.0059439,0.010406,0.015524,0.019735,0.021378,0.019735,0.015524,0.010406,0.0059439},
+                                {0.0039843,0.0069753,0.010406,0.013228,0.01433,0.013228,0.010406,0.0069753,0.0039843},
+                                {0.0022759,0.0039843,0.0059439,0.0075562,0.0081855,0.0075562,0.0059439,0.0039843,0.0022759}
+                            };
+    int i, j, k, l;
+    float tempData[height+8][width+8];
+    for (i = 0; i < height+8; ++i) {
+        memset(tempData[i], 0, sizeof(float)*(width+8));
+    }
+    
+    for (i = 0; i < height; ++i) {
+        for (j = 0; j < width; ++j) {
+            tempData[i+4][j+4] = data[i*width+j];
+        }
+    }
+    
+    double tmp;
+    float* filtered_data = (float*)malloc(sizeof(float)*width*height);
+    memset(filtered_data, 0, sizeof(float)*width*height);
+    
+    for (i = 0; i < height; ++i) {
+        for (j = 0; j < width; ++j) {
+            tmp = 0;
+            for (k = 0; k < 9; ++k) {
+                for (l = 0; l < 9; ++l) {
+                    filtered_data[i*width+j] += tempData[i+k][j+l]*templates[k][l];
+                }
+            }
+        }
+    }
+    
+    return filtered_data;
 }
