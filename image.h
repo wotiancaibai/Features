@@ -31,6 +31,13 @@ typedef struct {
     float* v;  // [0,1]
 } image_hsv;
 
+typedef struct {
+    int nr;
+    int nc;
+    int*seglable;
+    int lablenum;
+} ncut_seg;
+
 /* ************************************************** */
 /* a group of functions which create or delete images */
 image_hsl* image_hsl_new(int width, int height);
@@ -73,5 +80,7 @@ float *get_saliency_map(image_rgb* rgb);
 int count_segarea(int*seglable,int size,int lable);//tested
 int* segment_hue_histogram(int*seglable,image_hsv* imagehsv,int nr,int nc,int lablenum);//tested
 int* maxarea_segment(int*seglable,int size,int lablenum);//tested
+//返回的ncut_seg中的seglable成员指向动态分配的内存，注意最后释放掉
+ncut_seg ncut_main_seg(int* initial_seglable,int nr,int nc);
 #endif	/* IMAGE_H */
 

@@ -423,3 +423,35 @@ int* maxarea_segment(int*seglable,int size,int lablenum){
     maxseg[1]=lablesize;
     return maxseg;
 }
+
+//
+ncut_seg ncut_main_seg(int* initial_seglable,int nr,int nc){
+    int size[5]={0};
+    int imagesize=nr*nc;
+    int*seglable=NEWA(int,imagesize);
+    int i=0,j=0;
+    int initial_lablenum=5;
+    int lablenum=initial_lablenum;
+    ncut_seg nseg;
+    
+    for(i=0;i<imagesize;++i){
+        seglable[i]=initial_seglable[i];
+    }
+    
+    for(i=0;i<initial_lablenum;++i){
+        size[i]=count_segarea(initial_seglable,imagesize,i+1);
+        if(size[i]<5*imagesize/100){
+            lablenum=lablenum-1;
+            for(j=0;j<imagesize;++j){
+                if(initial_seglable[j]==i+1)
+                    seglable[j]=0;
+            }
+        }
+    }
+    
+    nseg.nc=nc;
+    nseg.nr=nr;
+    nseg.lablenum=lablenum;
+    nseg.seglable=seglable;   
+    return nseg;
+}

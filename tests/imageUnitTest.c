@@ -362,7 +362,7 @@ void segment_hue_histogram_test(){
     free(seglable);
 }
 
-void maxarea_segment_teste(){
+void maxarea_segment_test(){
     int size=100;
     int*seglable=NEWA(int,size);
     int lablenum=5;
@@ -389,6 +389,58 @@ void maxarea_segment_teste(){
     free(maxseg);
 }
 
+void ncut_main_seg_test(){
+    int nr=10,nc=10;
+    int* init_seglable=NEWA(int,nr*nc);
+   // int init_lablenum=5;
+    int i=0;
+    int segsize[5]={20,1,4,5,70};
+    ncut_seg seg;
+    
+    for(i=0;i<100;++i){
+        if(i<segsize[0]){
+           init_seglable[i]=1;
+        }
+        else if(i<segsize[0]+segsize[1]){
+            init_seglable[i]=2;
+        }
+        else if(i<segsize[0]+segsize[1]+segsize[2]){
+            init_seglable[i]=3;
+        }
+        else if(i<segsize[0]+segsize[1]+segsize[2]+segsize[3]){
+            init_seglable[i]=4;
+        }        
+        else{
+            init_seglable[i]=5;
+        }
+    }
+    
+    seg=ncut_main_seg(init_seglable,nr,nc);
+    CU_ASSERT_EQUAL(seg.nc,nc);
+    CU_ASSERT_EQUAL(seg.nr,nr);
+    CU_ASSERT_EQUAL(seg.lablenum,3);
+    
+    for(i=0;i<100;++i){
+        if(i<segsize[0]){
+           CU_ASSERT_EQUAL(seg.seglable[i],1);
+        }
+        else if(i<segsize[0]+segsize[1]){
+            CU_ASSERT_EQUAL(seg.seglable[i],0);
+        }
+        else if(i<segsize[0]+segsize[1]+segsize[2]){
+            CU_ASSERT_EQUAL(seg.seglable[i],0);
+        }
+        else if(i<segsize[0]+segsize[1]+segsize[2]+segsize[3]){
+            CU_ASSERT_EQUAL(seg.seglable[i],4);
+        }        
+        else{
+            CU_ASSERT_EQUAL(seg.seglable[i],5);
+        }
+    }
+    free(init_seglable);
+    free(seg.seglable);
+}
+
 int main() {
     CU_pSuite pSuite = NULL;
 
@@ -411,7 +463,8 @@ int main() {
         (NULL == CU_add_test(pSuite, "get_saliency_map_test", get_saliency_map_test))||
         (NULL == CU_add_test(pSuite, "count_segarea_test", count_segarea_test))||
         (NULL == CU_add_test(pSuite, "segment_hue_histogram_test", segment_hue_histogram_test))||
-        (NULL == CU_add_test(pSuite, "maxarea_segment_test", maxarea_segment_teste))    
+        (NULL == CU_add_test(pSuite, "maxarea_segment_test", maxarea_segment_test))||  
+        (NULL == CU_add_test(pSuite, "ncut_main_seg_test", ncut_main_seg_test))
        ){
         CU_cleanup_registry();
         return CU_get_error();
