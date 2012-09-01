@@ -6,40 +6,40 @@
 #include "tools.h"
 #include "feature.h"
 
-brightness* get_brightness_feature(image_hsl* hsl) {
+fbrightness get_brightness_feature(image_hsl* hsl) {
     float mean, stdev, max, min;
     int width = hsl->width, height = hsl->height;
     int len = width*height;
-    brightness* feature = NEW(brightness);
+    fbrightness feature;
     
     mean = amean(hsl->l, len);
     stdev = get_stdev(hsl->l, len);
     max = amax(hsl->l, len);
     min = amin(hsl->l, len);
     
-    feature->mean = mean;
-    feature->stdev = stdev;
-    feature->max = max;
-    feature->min = min;
+    feature.mean = mean;
+    feature.stdev = stdev;
+    feature.max = max;
+    feature.min = min;
     
     return feature;
 }
 
-saturation* get_saturation_feature(image_hsl* hsl) {
+fsaturation get_saturation_feature(image_hsl* hsl) {
     float mean, stdev, max, min;
     int width = hsl->width, height = hsl->height;
     int len = width*height;
-    saturation* feature = NEW(saturation);
+    fsaturation feature;
     
     mean = amean(hsl->s, len);
     stdev = get_stdev(hsl->s, len);
     max = amax(hsl->s, len);
     min = amin(hsl->s, len);
     
-    feature->mean = mean;
-    feature->stdev = stdev;
-    feature->max = max;
-    feature->min = min;
+    feature.mean = mean;
+    feature.stdev = stdev;
+    feature.max = max;
+    feature.min = min;
     
     return feature;
 }
@@ -159,7 +159,7 @@ float get_sharpness_feature(image_hsl* hsl) {
     return sh;
 }
 
-gray_simplicity* get_grayscale_simplicity_feature(image_gray* gray) {
+fgray_simplicity get_grayscale_simplicity_feature(image_gray* gray) {
     int i;
     int width = gray->width, height = gray->height;
     int wh = width * height;
@@ -169,7 +169,7 @@ gray_simplicity* get_grayscale_simplicity_feature(image_gray* gray) {
     int add_up = 0;
     
     int* histogram = get_gray_histogram(gray);
-    gray_simplicity* feature = NEW(gray_simplicity);
+    fgray_simplicity feature;
     
     // get the first feature
     lower_bound = (int)(0.025 * wh);
@@ -221,16 +221,16 @@ gray_simplicity* get_grayscale_simplicity_feature(image_gray* gray) {
     }
     stdev = get_stdev(tmp, wh);
     
-    feature->contrast = contrast;
-    feature->sig_pixels_num = sig_pixels_num;
-    feature->stdev = stdev;
+    feature.contrast = contrast;
+    feature.sig_pixels_num = sig_pixels_num;
+    feature.stdev = stdev;
     
     free(histogram);
     
     return feature;
 }
 
-rgb_simplicity* get_rgb_simplicity_feature(image_rgb* rgb) {
+frgb_simplicity get_rgb_simplicity_feature(image_rgb* rgb) {
     int i;
     int width = rgb->width, height = rgb->height;
     int wh = width * height;
@@ -239,7 +239,7 @@ rgb_simplicity* get_rgb_simplicity_feature(image_rgb* rgb) {
     int lower_bound;
     
     int* histogram = get_rgb_histogram(rgb);
-    rgb_simplicity* feature = NEW(rgb_simplicity);
+    frgb_simplicity feature;
     
     // sort the histogram
     isort(histogram, NULL, 512);
@@ -257,15 +257,15 @@ rgb_simplicity* get_rgb_simplicity_feature(image_rgb* rgb) {
     
     ratio = (float)histogram[0] / wh; // the ratio of the dominant color
     
-    feature->sig_pixels_num = sig_pixels_num;
-    feature->ratio = ratio;
+    feature.sig_pixels_num = sig_pixels_num;
+    feature.ratio = ratio;
     
     free(histogram);
     
     return feature;
 }
 
-hsv_simplicity* get_hsv_simplicity_feature(image_hsv* hsv) {
+fhsv_simplicity get_hsv_simplicity_feature(image_hsv* hsv) {
     int i;
     int width = hsv->width, height = hsv->height;
     int wh = width * height;
@@ -274,7 +274,7 @@ hsv_simplicity* get_hsv_simplicity_feature(image_hsv* hsv) {
     int lower_bound;
     
     int* histogram = get_hsv_histogram(hsv);
-    hsv_simplicity* feature = NEW(hsv_simplicity);
+    fhsv_simplicity feature;
     
     // sort the histogram
     isort(histogram, NULL, 512);
@@ -292,19 +292,19 @@ hsv_simplicity* get_hsv_simplicity_feature(image_hsv* hsv) {
     
     ratio = (float)histogram[0] / wh; // the ratio of the dominant color
     
-    feature->sig_pixels_num = sig_pixels_num;
-    feature->ratio = ratio;
+    feature.sig_pixels_num = sig_pixels_num;
+    feature.ratio = ratio;
     
     free(histogram);
     
     return feature;
 }
 
-color_harmony* get_color_harmony_feature(image_hsl* hsl) {
+fcolor_harmony get_color_harmony_feature(image_hsl* hsl) {
     int i, j, k;
     float delta_alpha;
     int width = hsl->width, height = hsl->height;
-    color_harmony* feature = NEW(color_harmony);
+    fcolor_harmony feature;
     
     float temp_d[2];
     float gamma[7] = {3E34, 3E34, 3E34, 3E34, 3E34, 3E34, 3E34};
@@ -388,13 +388,13 @@ color_harmony* get_color_harmony_feature(image_hsl* hsl) {
 	
     fsort(alpha, 0, 7);
     
-    feature->bestfit = alpha[6] * 2*PI;
-    feature->fisrt_two_dev = fabs(alpha[5] - alpha[6]) * 2*PI;
-    feature->avg_dev = amean(alpha, 7) * 2*PI;
+    feature.bestfit = alpha[6] * 2*PI;
+    feature.fisrt_two_dev = fabs(alpha[5] - alpha[6]) * 2*PI;
+    feature.avg_dev = amean(alpha, 7) * 2*PI;
     return feature;
 }
 
-hue_hist* get_hue_histogram_feature(image_hsv* hsv) {
+fhue_hist get_hue_histogram_feature(image_hsv* hsv) {
     int i, j;
     int index[20];
     int width = hsv->width, height = hsv->height;
@@ -403,7 +403,7 @@ hue_hist* get_hue_histogram_feature(image_hsv* hsv) {
     float stdev, arc_dis = 0, contrast = 0;
     
     int* histogram = get_hue_histogram(hsv);
-    hue_hist* feature = NEW(hue_hist);
+    fhue_hist feature;
     
     isort(histogram, index, 20);
     // first feature
@@ -435,16 +435,16 @@ hue_hist* get_hue_histogram_feature(image_hsv* hsv) {
     stdev = get_stdev(tmp, wh); 
     stdev *= PI/10;                 // change to arc scale
     
-    feature->sig_pixels_num = sig_pixels_num;
-    feature->contrast = contrast;
-    feature->stdev = stdev;
+    feature.sig_pixels_num = sig_pixels_num;
+    feature.contrast = contrast;
+    feature.stdev = stdev;
     
     free(histogram);
     
     return feature;
 }
 
-color_coherence* get_color_coherence_feature(image_hsv* hsv) {
+fcolor_coherence get_color_coherence_feature(image_hsv* hsv) {
     int i, j, k;
     int width = hsv->width, height = hsv->height;
     int wh = width * height;
@@ -458,7 +458,7 @@ color_coherence* get_color_coherence_feature(image_hsv* hsv) {
     } Point;
     
     
-    color_coherence* feature = NEW(color_coherence);
+    fcolor_coherence feature;
     
     int descrized[wh];
     for (i = 0; i < wh; ++i) {
@@ -537,16 +537,241 @@ color_coherence* get_color_coherence_feature(image_hsv* hsv) {
         if (connected[i] > 0)
             ++n_ccc;
     
-    feature->n_ccc = n_ccc;
+    feature.n_ccc = n_ccc;
     
     int index[512];
     isort(connected, index, 512);
     
-    feature->r_lc = (float)connected[0] / wh;
-    feature->r_slc = (float)connected[1] / wh;
+    feature.r_lc = (float)connected[0] / wh;
+    feature.r_slc = (float)connected[1] / wh;
     // get the corresponding Hue rank by divide the bin number by 64
-    feature->rank = index[0] / 64;
-    feature->s_rank = index[1] / 64;
+    feature.rank = index[0] / 64;
+    feature.s_rank = index[1] / 64;
     
     return feature;
+}
+
+//Get Segment size feature -(12)
+
+fSegment_size get_segsize_feature(int* seglable,int nr,int nc,int lablenum){
+    int* segsize=NEWA(int,lablenum);
+    int* diff_segsize=NEWA(int,lablenum*(lablenum-1)/2);
+    int i=0,j=0,k=0;
+    //int n=0;
+    float msegsize,mdsegsize;
+    float feat1,feat2;
+    fSegment_size feat;
+    for(i=0;i<lablenum;++i){
+        segsize[i]=count_segarea(seglable,nr*nc,i+1);
+    }
+    msegsize=intamax(segsize, lablenum);
+    feat1=msegsize/(nr*nc);
+    
+    for(i=0;i<lablenum;++i){
+        for(j=i+1;j<lablenum;++j){
+            //n=abs((int)(segnum[i]-segnum[j]));
+            diff_segsize[k]=abs(segsize[i]-segsize[j]);
+            k++;
+        }
+    }
+    mdsegsize=intamax(diff_segsize, k-1);
+    feat2=mdsegsize/(nr*nc);
+    
+    feat.rmaxsize=feat1;
+    feat.rcontrast=feat2;
+    
+    free(segsize);
+    free(diff_segsize);
+    return feat;
+}
+
+//Get Segment hues feature-(13)
+int get_seghues_feature1(int* seghistogram,int imagesize,int mlable){
+    int feat=0;
+    float c=0.01;
+    int i=0;
+    int count=0;
+    for(i=0;i<20;i++){
+        if(seghistogram[(mlable-1)*20+i]>=c*imagesize){
+            count++;
+        }
+    }
+    feat=count;
+    return feat;
+}
+
+int get_seghues_feature2(int* seghistogram,int*seglable,int imagesize,int lablenum){
+    int feat=0;
+    float c=0.01;
+    int i=0;
+    int q=0;
+    int segsize;
+    for(i=0;i<lablenum;++i){
+        segsize=count_segarea(seglable,imagesize,i+1);
+        q=get_seghues_feature1(seghistogram,segsize,i+1);
+        if(feat<q)
+            feat=q;
+    }
+    return feat;
+}
+int get_seghues_feature3(int* seghistogram,int*seglable,int imagesize,int lablenum){
+    int feat=0;
+    float c=0.01;
+    int i=0,j=0;
+    int q[2]={0,0};
+    int segsize[2]={0,0};
+    for(i=0;i<lablenum;++i){
+        segsize[0]=count_segarea(seglable,imagesize,i+1);
+        q[0]=get_seghues_feature1(seghistogram,segsize[0],i+1);
+        for(j=i+1;j<lablenum;++j){
+           segsize[1]=count_segarea(seglable,imagesize,j+1);
+           q[1]=get_seghues_feature1(seghistogram,segsize[1],j+1);
+  
+           if(feat<abs(q[0]-q[1]))
+              feat=abs(q[0]-q[1]);
+        }
+    }
+    return feat;
+}
+
+int get_seghues_feature4(int* seghistogram,int msize,int mlable){
+    int feat=0;
+    float c=0.01;
+    int i=0,j=0;
+    int arcdis=0;
+    for(i=0;i<20;i++){
+        for(j=i+1;j<20;j++){
+            if(seghistogram[(mlable-1)*20+i]>=c*msize&&seghistogram[(mlable-1)*20+j]>=c*msize){
+                arcdis=(j-i)*18;
+                if(arcdis>180)
+                    arcdis=360-arcdis;
+                if(feat<arcdis)
+                    feat=arcdis;             
+            }          
+        }
+    }
+    return feat;
+}
+
+float get_seghues_feature5(int* seghistogram,int*seglable,int imagesize,int lablenum){
+    float feat=0.0;
+    int k=0;
+    int segsize=0;
+    float*feat4=NEWA(float,lablenum);
+    for(k=0;k<lablenum;++k){
+        segsize=count_segarea(seglable,imagesize,k+1);
+        feat4[k]=get_seghues_feature4(seghistogram,segsize,k+1);               
+    }
+    feat=get_stdev(feat4,lablenum);
+    free(feat4);
+    return feat; 
+}
+
+fSegment_hues get_seghues_feature(int*seglable,image_hsv* imagehsv,int nr,int nc,int lablenum){
+    fSegment_hues feat;
+    //记得ｆｒｅｅ掉
+    int* seghistogram=segment_hue_histogram(seglable,imagehsv,nr,nc,lablenum);
+    int imagesize=nr*nc;
+    int* maxseg=maxarea_segment(seglable,imagesize,lablenum);
+    int mlable=maxseg[0],msize=maxseg[1];
+    feat.fhues1=get_seghues_feature1(seghistogram,imagesize, mlable);
+    feat.fhues2=get_seghues_feature1(seghistogram,msize, mlable);
+    feat.fhues3=get_seghues_feature2(seghistogram,seglable,imagesize, lablenum);
+    feat.fhues4=get_seghues_feature3(seghistogram,seglable,imagesize, lablenum);
+    feat.fhues5=get_seghues_feature4(seghistogram,msize, mlable);
+    feat.fhues6=get_seghues_feature5(seghistogram,seglable,imagesize,lablenum);
+    free(seghistogram);
+    free(maxseg);
+    return feat;
+}
+
+//Get Segment color harmony feature-(14)
+fcolor_harmony get_segcolor_harmony_feature(image_hsl* hsl,int* seglable,int lablenum){
+   int nc=(hsl->width),nr=hsl->height;
+   int imagesize=nr*nc;
+   int*maxseg=maxarea_segment(seglable,imagesize,lablenum); 
+   int mlable=maxseg[0],msize=maxseg[1];
+   int i=0,k=0;
+   image_hsl* mseghsl=image_hsl_new(1, msize);
+   fcolor_harmony feat;
+   for(i=0;i<imagesize;++i){
+       if(seglable[i]==mlable){
+           mseghsl->h[k]=hsl->h[i];
+           mseghsl->s[k]=hsl->s[i];
+           mseghsl->l[k]=hsl->l[i];
+           k++;        
+       }
+   }
+   feat=get_color_harmony_feature(mseghsl);
+   free(maxseg);
+   image_hsl_delete(mseghsl);
+   return feat;     
+}
+
+//Get Segment lightness feature-(15)
+float get_seglightness_average(image_hsl* hsl,int* seglable, int lable){
+    int i=0;
+    float feat,sum=0;
+    int count=0;
+    int nc=(hsl->width),nr=hsl->height;
+    int imagesize=nr*nc;
+    
+    for(i=0;i<imagesize;++i){
+        if(seglable[i]==lable){
+            sum+=hsl->l[i];
+            count++;
+        }    
+    }
+    return feat=sum/count;
+}
+
+float get_seglightness_std(image_hsl* hsl,int* seglable, int lablenum){
+    float* seglightness_ave=NEWA(float,lablenum);
+    int i=0;
+    float feat;
+    
+    for(i=0;i<lablenum;++i){
+        seglightness_ave[i]=get_seglightness_average( hsl,seglable,i+1);
+    }
+    
+    feat=get_stdev(seglightness_ave, lablenum); 
+    
+    free(seglightness_ave);
+    return feat;
+}
+
+float get_segavelightness_contrast(image_hsl* hsl,int* seglable, int lablenum){
+    float* seglightness_ave=NEWA(float,lablenum);
+    int i=0,j=0;
+    float feat=-1;
+    float diff=0;
+    
+    for(i=0;i<lablenum;++i){
+        seglightness_ave[i]=get_seglightness_average( hsl,seglable,i+1);
+    }
+    
+    for(i=0;i<lablenum;++i){
+        for(j=i+1;j<lablenum;++j){
+            diff=fabs(seglightness_ave[i]-seglightness_ave[j]);
+            if(feat<diff)
+                feat=diff;
+        }
+    }
+    
+    free(seglightness_ave);
+    return feat;    
+}
+    
+fsegment_lightness get_seglightness_feature(image_hsl* hsl,int* seglable, int lablenum){
+    fsegment_lightness feat;
+    int nc=(hsl->width),nr=hsl->height;
+    int imagesize=nr*nc;
+    int*maxseg=maxarea_segment(seglable,imagesize,lablenum); 
+    int mlable=maxseg[0],msize=maxseg[1];
+    
+    feat.mseg_ave=get_seglightness_average(hsl,seglable,mlable);
+    feat.seg_ave_std=get_seglightness_std(hsl,seglable,lablenum);
+    feat.seg_ave_contrast=get_segavelightness_contrast(hsl,seglable,lablenum);
+    
+    return feat;
 }

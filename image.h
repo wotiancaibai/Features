@@ -69,5 +69,9 @@ int* get_hue_histogram(image_hsv* hsv); // tested
 
 float *get_saliency_map(image_rgb* rgb);
 
+//normalized cut related
+int count_segarea(int*seglable,int size,int lable);//tested
+int* segment_hue_histogram(int*seglable,image_hsv* imagehsv,int nr,int nc,int lablenum);//tested
+int* maxarea_segment(int*seglable,int size,int lablenum);//tested
 #endif	/* IMAGE_H */
 

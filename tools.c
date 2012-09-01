@@ -29,9 +29,31 @@ float amax(float* a, int n) {
     return r;
 }
 
+int intamax(int* a, int n) {
+    int i;
+    int r = a[0];
+    for (i = 1; i < n; ++i) {
+        if (a[i] > r)
+            r = a[i];
+    }
+    
+    return r;
+}
+
 float amin(float* a, int n) {
     int i;
     float r = a[0];
+    for (i = 1; i < n; ++i) {
+        if (a[i] < r)
+            r = a[i];
+    }
+    
+    return r;
+}
+
+int intamin(int* a, int n) {
+    int i;
+    int r = a[0];
     for (i = 1; i < n; ++i) {
         if (a[i] < r)
             r = a[i];

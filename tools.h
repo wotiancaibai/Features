@@ -10,9 +10,11 @@ float fmin3(float a, float b, float c); // tested
 
 // find the max number in an array
 float amax(float* a, int n); // tested
+int intamax(int* a, int n); // tested
 
 // find the min number in an array
 float amin(float* a, int n); // tested
+int intamin(int* a, int n); // tested
 
 // get the mean value of the array
 float amean(float* a, int n); // tested

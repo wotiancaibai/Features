@@ -209,6 +209,186 @@ void get_saliency_map_test() {
     fclose(fp);
 }
 
+//normalized cut related
+void count_segarea_test(){
+    int size=100;
+    int*seglable=NEWA(int,size);
+    int lablenum=5;
+    int i=0;
+    int maxsegsize=0;
+    int segsize[5]={20,20,30,20,10};
+    
+    for(i=0;i<size;++i){
+        if(i<segsize[0])
+            seglable[i]=1;
+        else if(i<segsize[0]+segsize[1])
+            seglable[i]=2;
+        else if(i<segsize[0]+segsize[1]+segsize[2])
+            seglable[i]=3;
+        else if(i<segsize[0]+segsize[1]+segsize[2]+segsize[3])
+            seglable[i]=4;
+        else
+            seglable[i]=5;       
+    }
+    for(i=0;i<5;++i){
+        maxsegsize=count_segarea(seglable,size,i+1);
+        CU_ASSERT_EQUAL(maxsegsize, segsize[i]);
+    }
+    
+    free(seglable);
+}
+
+void segment_hue_histogram_test(){
+    int nr=30,nc=30;
+    int*seglable=NEWA(int,nr*nc);
+    image_hsv* imagehsv=image_hsv_new(nr,nc);
+    int lablenum=5;
+    int* seghistogram=NEWA(int,20*lablenum);
+    int i=0;
+    int j=0;
+    for(i=0;i<nr;++i){
+        for(j=0;j<nc;++j){
+            if(j<10)
+                seglable[i*nc+j]=i/10+1;
+            else
+                seglable[i*nc+j]=i/10+1+3;
+            if(seglable[i*nc+j]>5)
+                seglable[i*nc+j]=3;            
+        }
+    }
+    
+    for(i=0;i<nr;++i){
+        for(j=0;j<nc;++j){
+            if(i<10&&j<20){             
+                imagehsv->h[i*nc+j]=18.0*rand()/(RAND_MAX+1.0); 
+            }
+            else if(i<10&&j<30){
+                imagehsv->h[i*nc+j]=18.0*rand()/(RAND_MAX+1.0)+18.0;
+            }
+            
+            if(i>=10&&i<20&&j<3){
+                imagehsv->h[i*nc+j]=18.0*rand()/(RAND_MAX+1.0);
+            }
+            else if(i>=10&&i<20&&j<6){
+                imagehsv->h[i*nc+j]=18.0*rand()/(RAND_MAX+1.0)+18.0;
+            }
+            else if(i>=10&&i<20&&j<10){
+                imagehsv->h[i*nc+j]=18.0*rand()/(RAND_MAX+1.0)+36.0;
+            }
+            else if(i>=10&&i<20&&j<15){
+                imagehsv->h[i*nc+j]=18.0*rand()/(RAND_MAX+1.0);
+            }
+            else if(i>=10&&i<20&&j<20){
+                imagehsv->h[i*nc+j]=18.0*rand()/(RAND_MAX+1.0)+18.0;
+            }
+            else if(i>=10&&i<20&&j<25){
+                imagehsv->h[i*nc+j]=18.0*rand()/(RAND_MAX+1.0)+36.0;
+            }
+            else if(i>=10&&i<20&&j<30){
+                imagehsv->h[i*nc+j]=18.0*rand()/(RAND_MAX+1.0)+54.0;
+            }
+            
+            if(i>=20&&i<30&&j<20){
+                imagehsv->h[i*nc+j]=18.0*rand()/(RAND_MAX+1.0)+j*18.0;
+            }
+            else if(i>=20&&i<30&&j<30){
+                imagehsv->h[i*nc+j]=18.0*rand()/(RAND_MAX+1.0)+19*18.0;
+            }
+            
+            if(i%10<5){      
+                imagehsv->s[i*nc+j]=0.2*rand()/(RAND_MAX+1.0);
+                imagehsv->v[i*nc+j]=0.2*rand()/(RAND_MAX+1.0);                
+            }
+            else{
+                imagehsv->s[i*nc+j]=0.2*rand()/(RAND_MAX+1.0)+0.2;
+                imagehsv->v[i*nc+j]=0.2*rand()/(RAND_MAX+1.0)+0.1;
+            }          
+          }         
+    }
+   
+    seghistogram=segment_hue_histogram(seglable,imagehsv,nr,nc,lablenum);
+       
+    for(i=0;i<20;++i){
+        if(i==0){
+            CU_ASSERT_EQUAL(seghistogram[i], 50);
+        }
+        else{
+            CU_ASSERT_EQUAL(seghistogram[i],0);
+        }
+    }
+    
+    for(i=0;i<20;++i){
+        if(i<2){
+            CU_ASSERT_EQUAL(seghistogram[20+i],15);
+        }
+        else if(i==2){
+            CU_ASSERT_EQUAL(seghistogram[20+i],20); 
+        }
+        else{
+            CU_ASSERT_EQUAL(seghistogram[20+i],0);
+        }
+    }
+    
+    for(i=0;i<20;++i){
+        if(i<19){
+           CU_ASSERT_EQUAL(seghistogram[40+i],5);
+        }
+        else{
+            CU_ASSERT_EQUAL(seghistogram[40+i],55);
+        }           
+    }
+    
+    for(i=0;i<20;++i){
+        if(i<2){
+            CU_ASSERT_EQUAL(seghistogram[60+i],50);
+        }
+        else{
+            CU_ASSERT_EQUAL(seghistogram[60+i],0); 
+        }
+    }
+    
+    for(i=0;i<20;++i){
+        if(i<4){
+           CU_ASSERT_EQUAL(seghistogram[80+i],25);
+        }
+        else{
+            CU_ASSERT_EQUAL(seghistogram[80+i],0);
+        }
+            
+    }
+    
+    image_hsv_delete(imagehsv);
+    free(seghistogram);
+    free(seglable);
+}
+
+void maxarea_segment_teste(){
+    int size=100;
+    int*seglable=NEWA(int,size);
+    int lablenum=5;
+    int* maxseg=NEWA(int,2);
+    int i=0;
+    
+    for(i=0;i<size;++i){
+        if(i<30)
+            seglable[i]=3;
+        else if(i<50)
+            seglable[i]=2;
+        else if(i<70)
+            seglable[i]=1;
+        else if(i<90)
+            seglable[i]=4;
+        else
+            seglable[i]=5;       
+    }
+    
+    maxseg=maxarea_segment(seglable,size,lablenum);
+    CU_ASSERT_EQUAL(maxseg[0], 3);
+    CU_ASSERT_EQUAL(maxseg[1], 30);
+    free(seglable);
+    free(maxseg);
+}
+
 int main() {
     CU_pSuite pSuite = NULL;
 
@@ -228,7 +408,10 @@ int main() {
         (NULL == CU_add_test(pSuite, "testRgb2hsl", testRgb2hsl)) ||
         (NULL == CU_add_test(pSuite, "testRgb2hsv", testRgb2hsv)) ||
         (NULL == CU_add_test(pSuite, "get_histogram_test", get_histogram_test)) ||
-        (NULL == CU_add_test(pSuite, "get_saliency_map_test", get_saliency_map_test))
+        (NULL == CU_add_test(pSuite, "get_saliency_map_test", get_saliency_map_test))||
+        (NULL == CU_add_test(pSuite, "count_segarea_test", count_segarea_test))||
+        (NULL == CU_add_test(pSuite, "segment_hue_histogram_test", segment_hue_histogram_test))||
+        (NULL == CU_add_test(pSuite, "maxarea_segment_test", maxarea_segment_teste))    
        ){
         CU_cleanup_registry();
         return CU_get_error();

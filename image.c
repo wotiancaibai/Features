@@ -376,3 +376,50 @@ float *get_saliency_map(image_rgb* rgb) {
     return saliencyMap;
 }
 
+int count_segarea(int*seglable,int size,int lable){
+    int lablesize=0,i=0;
+    for(i=0;i<size;++i){
+        if(seglable[i]==lable)
+            lablesize++;
+    }
+    return lablesize;
+}
+
+int* segment_hue_histogram(int*seglable,image_hsv* imagehsv,int nr,int nc,int lablenum){
+    int* seghistogram=NEWA(int,20*lablenum);
+    int i=0,j=0,k=0,m=0;
+    
+    for(i=0;i<20*lablenum;++i){
+        seghistogram[i]=0;    
+    }
+    
+    for(i=0;i<nr;++i){
+        for(j=0;j<nc;++j){
+            for(k=0;k<lablenum;++k){
+                if(seglable[i*nc+j]==k+1){
+                    if(imagehsv->s[i*nc+j]>0.2||imagehsv->v[i*nc+j]>0.2){
+                        m=imagehsv->h[i*nc+j]/18;
+                        seghistogram[k*20+m]++;
+                    }    
+                }
+            }           
+        }
+    }
+    
+    return seghistogram;
+}
+
+int* maxarea_segment(int*seglable,int size,int lablenum){
+    int mlable=0,lablesize=-1;
+    int* maxseg=NEWA(int,2);
+    int i=0;
+    for(i=0;i<lablenum;++i){
+        if(lablesize<count_segarea(seglable,size,i+1)){
+            lablesize=count_segarea(seglable,size,i+1);
+            mlable=i+1;           
+        }
+    }
+    maxseg[0]=mlable;
+    maxseg[1]=lablesize;
+    return maxseg;
+}
