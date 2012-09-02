@@ -661,10 +661,10 @@ void get_saliency_map_feature_test() {
 
 void get_face_feature_test() {
 	CvHaarClassifierCascade* classifier = (CvHaarClassifierCascade*)cvLoad("haarcascade_frontalface_alt_tree.xml", 0, 0, 0);
-	int n1 = get_face_feature("1.jpg", classifier, cvSize(10, 20));
-	int n2 = get_face_feature("2.jpg", classifier, cvSize(10, 20));
-	int n3 = get_face_feature("3.jpg", classifier, cvSize(10, 20));
-	int n4 = get_face_feature("16.jpg", classifier, cvSize(10, 20));
+	int n1 = get_face_feature("img/1.jpg", classifier, cvSize(10, 20));
+	int n2 = get_face_feature("img/2.jpg", classifier, cvSize(10, 20));
+	int n3 = get_face_feature("img/3.jpg", classifier, cvSize(10, 20));
+	int n4 = get_face_feature("img/16.jpg", classifier, cvSize(10, 20));
 	CU_ASSERT_EQUAL(n1, 0);
 	CU_ASSERT_EQUAL(n2, 1);
 	CU_ASSERT_EQUAL(n3, 1);

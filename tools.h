@@ -2,6 +2,13 @@
 #ifndef TOOLS_H
 #define	TOOLS_H
 
+// count the number of files in the path
+void count_files(char *path, int* count);  // used before
+// list the files in the path
+void list_files(char *path, char** filenames, int* index); // used before
+// return the filename list and get the number of files in the path
+char** get_files_list(char* path, int* count); // used before
+
 // find the max among 3 numbers
 float fmax3(float a, float b, float c); // tested
 

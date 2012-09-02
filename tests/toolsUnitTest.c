@@ -108,7 +108,7 @@ void get_stdev_test() {
 }
 
 void fft2D_test() {
-    image_rgb* rgb = load_rgb_image("r2.jpg", 1);
+    image_rgb* rgb = load_rgb_image("tests/r2.jpg", 1);
     int i, j;
     int width = rgb->width, height = rgb->height;
     int wh = width*height;
@@ -134,7 +134,7 @@ void fft2D_test() {
     float *amplitude = get_log_amplitude(myFFT, width, height);
     
     FILE *fp;
-    fp = fopen("out.txt", "w");
+    fp = fopen("tests/out2.txt", "w");
     for (i = 0; i < height; ++i) {
         for (j = 0; j < width; ++j) {
             fprintf(fp, "%f\t", amplitude[i*width+j]);
