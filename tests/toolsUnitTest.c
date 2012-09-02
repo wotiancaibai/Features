@@ -107,8 +107,9 @@ void get_stdev_test() {
     CU_ASSERT_DOUBLE_EQUAL(b, 328.106394, 0.0001);
 }
 
+/*
 void fft2D_test() {
-    image_rgb* rgb = load_rgb_image("tests/r2.jpg", 1);
+    image_rgb* rgb = load_image("tests/2.jpg", 1);
     int i, j;
     int width = rgb->width, height = rgb->height;
     int wh = width*height;
@@ -121,20 +122,26 @@ void fft2D_test() {
     }
     
     float *myFFT = fft2D(gray, width, height);
-    fftshift(myFFT, width, height);
     
-    float real[16384], imag[16384];
+    
+    float real[33600], imag[33600];
     
     for (i = 0; i < wh; ++i) {
         real[i] = myFFT[i*2];
         imag[i] = myFFT[i*2+1];
     }
-    
-    float *angle = get_phase_angle(myFFT, width, height);
-    float *amplitude = get_log_amplitude(myFFT, width, height);
+    //fftshift(myFFT, width, height);
+	
+	for (i = 0; i < wh; ++i) {
+        real[i] = myFFT[i*2];
+        imag[i] = myFFT[i*2+1];
+    }
+	
+    double* angle = get_phase_angle(myFFT, width, height);
+    double* amplitude = get_log_amplitude(myFFT, width, height);
     
     FILE *fp;
-    fp = fopen("tests/out2.txt", "w");
+    fp = fopen("tests/amplitude.txt", "w");
     for (i = 0; i < height; ++i) {
         for (j = 0; j < width; ++j) {
             fprintf(fp, "%f\t", amplitude[i*width+j]);
@@ -144,20 +151,21 @@ void fft2D_test() {
     fclose(fp);
     
     float *im = ifft2D(myFFT, width, height);
-    /*
-    for (i = 0; i < wh; ++i) {
-        printf("%f\n", im[i] - gray[i]);
-    }
-    */
+
+	image_rgb_delete(rgb);
+	free(gray);
+	free(im);
+	
     
 }
+*/
 
 void mean_filter_test() {
-    float img[9] = {3, 2, 4, 
+    double img[9] = {3, 2, 4, 
                     5, 7, 1,
                     4, 8, 2
                    };
-    float* test_img = mean_filter(img, 3, 3);
+    double* test_img = mean_filter(img, 3, 3);
     CU_ASSERT_DOUBLE_EQUAL(test_img[0], 3.66667, 0.00001);
     CU_ASSERT_DOUBLE_EQUAL(test_img[2], 3.22222, 0.00001);
     CU_ASSERT_DOUBLE_EQUAL(test_img[4], 4.00000, 0.00001);
@@ -166,7 +174,7 @@ void mean_filter_test() {
 }
 
 void gaussian_filter_test() {
-    float img[9] = {3, 2, 4, 
+    double img[9] = {3, 2, 4, 
                     5, 7, 1,
                     4, 8, 2
                    };
@@ -202,7 +210,7 @@ int main() {
             (NULL == CU_add_test(pSuite, "sort_test", sort_test))   ||
             (NULL == CU_add_test(pSuite, "get_arc_length_test", get_arc_length_test)) ||
             (NULL == CU_add_test(pSuite, "get_stdev_test", get_stdev_test)) ||
-            (NULL == CU_add_test(pSuite, "fft2D_test", fft2D_test)) ||
+            /*(NULL == CU_add_test(pSuite, "fft2D_test", fft2D_test)) ||*/
             (NULL == CU_add_test(pSuite, "mean_filter_test", mean_filter_test)) ||
             (NULL == CU_add_test(pSuite, "gaussian_filter_test", gaussian_filter_test))
        ) {

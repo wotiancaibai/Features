@@ -23,7 +23,7 @@ int clean_suite(void) {
 }
 
 void testRgb2gray() {
-    image_rgb* rgb = load_rgb_image("tests/test.jpg", 1);
+    image_rgb* rgb = load_image("tests/test.jpg", 1);
     image_gray *gray = rgb2gray(rgb);
     
     CU_ASSERT_EQUAL(gray->data[0], 3);
@@ -41,10 +41,10 @@ void testRgb2gray() {
 }
 
 void testRgb2hsl() {
-    image_rgb* rgb = load_rgb_image("tests/test.jpg", 1);
+    image_rgb* rgb = load_image("tests/test.jpg", 1);
     image_hsl* hsl = rgb2hsl(rgb);
     image_rgb* rgb2 = image_rgb_new(2, 2);
-    image_rgb* rgb3 = load_rgb_image("tests/test.bmp", 1);
+    image_rgb* rgb3 = load_image("tests/test.bmp", 1);
     int i, j;
     for (i = 0; i < 3; ++i) {
         for (j = 0; j < 3; ++j) {
@@ -103,7 +103,7 @@ void testRgb2hsl() {
 }
 
 void testRgb2hsv() {
-    image_rgb* rgb = load_rgb_image("tests/r2.jpg", 1);
+    image_rgb* rgb = load_image("tests/r2.jpg", 1);
     image_hsv* hsv = rgb2hsv(rgb);
     int width = hsv->width;
     
@@ -193,10 +193,10 @@ void get_histogram_test() { // gray_histogram & rgb_histogram & hue_histogram
 }
 
 void get_saliency_map_test() {
-    image_rgb* rgb = load_rgb_image("tests/r2.jpg", 1);
+    image_rgb* rgb = load_image("tests/2.jpg", 1);
     int i, j;
     int width = rgb->width, height = rgb->height;
-    FILE *fp = fopen("tests/out.txt", "w");
+    FILE *fp = fopen("tests/saliency_map.txt", "w");
     
     float *saliencyMap = get_saliency_map(rgb);
     

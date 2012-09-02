@@ -2,6 +2,9 @@
 #include <opencv/cv.h>
 #include <opencv/cxcore.h>
 #include <opencv/highgui.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <fftw3.h>
 
 #include "tools.h"
 #include "image.h"
@@ -74,11 +77,13 @@ void image_gray_delete(image_gray* im) {
     free(im);
 }
 
-image_rgb* load_rgb_image(const char *fname, int iscolor) {
+image_rgb* load_image(const char *fname, int iscolor) {
   int i, j, width, height, widthStep;
-  IplImage *image;
-  
-  image = cvLoadImage(fname, iscolor);
+  IplImage *image = cvLoadImage(fname, iscolor);
+  if (!image) {
+	  printf("load image err!\n");
+	  exit(1);
+  }
   width = image->width;
   height = image->height;
   widthStep = image->widthStep;
@@ -104,6 +109,39 @@ image_rgb* load_rgb_image(const char *fname, int iscolor) {
   }
   
   cvReleaseImage(&image);
+  
+  return im;
+}
+
+image_rgb* load_cv_image(IplImage *image) {
+  int i, j, width, height, widthStep;
+  if (!image) {
+	  printf("load image err!\n");
+	  exit(1);
+  }
+  width = image->width;
+  height = image->height;
+  widthStep = image->widthStep;
+  
+  image_rgb *im = image_rgb_new(width, height);
+  
+  if (image->nChannels > 1) { // RGB
+      for (i = 0; i < height; ++i) {
+          for (j = 0; j < width; ++j) {
+              im->r[i*width+j] = ((unsigned char*)image->imageData)[i*widthStep+j*3 + 2];  // R
+              im->g[i*width+j] = ((unsigned char*)image->imageData)[i*widthStep+j*3 + 1];  // G
+              im->b[i*width+j] = ((unsigned char*)image->imageData)[i*widthStep+j*3];      // B
+          }
+      }
+  } else { // gray level
+      for (i = 0; i < height; ++i) {
+          for (j = 0; j < width; ++j) {
+              im->r[i*width+j] = ((unsigned char*)image->imageData)[i*widthStep+j];
+              im->g[i*width+j] = ((unsigned char*)image->imageData)[i*widthStep+j];
+              im->b[i*width+j] = ((unsigned char*)image->imageData)[i*widthStep+j];
+          }
+      }
+  }
   
   return im;
 }
@@ -326,7 +364,11 @@ float *get_saliency_map(image_rgb* rgb) {
     int i, j;
     int width = rgb->width, height = rgb->height;
     int wh = width*height;
-    float* gray = (float*)malloc(sizeof(float)*width*height);
+    
+    float gray[wh];
+    fftw_complex *in1 = (fftw_complex *) fftw_malloc(width*height*sizeof(fftw_complex));
+    fftw_complex *in2 = (fftw_complex *) fftw_malloc(width*height*sizeof(fftw_complex));
+    fftw_complex *out = (fftw_complex *) fftw_malloc(width*height*sizeof(fftw_complex));
     
     for (i = 0; i < height; ++i) {
         for (j = 0; j < width; ++j) {
@@ -334,28 +376,36 @@ float *get_saliency_map(image_rgb* rgb) {
         }
     }
     
-    float* myFFT = fft2D(gray, width, height);
-    fftshift(myFFT, width, height); // transfer the 0 frequency to the center of the image
+    for(j = 0; j < height; j++) {
+        for(i = 0; i < width; i++) {
+            in1[j*width + i][0] = gray[j*width+i];
+            in1[j*width + i][1] = 0.0f;
+        }
+    }
     
-    float* myLogAmplitude = get_log_amplitude(myFFT, width, height);
-    float* myPhase = get_phase_angle(myFFT, width, height);
-    float* img_avg_filtered = mean_filter(myLogAmplitude, width, height);
+    fftw_plan fft = fftw_plan_dft_2d(height, width, in1, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_execute(fft);
     
-
-    float mySpectralResidual;
-    float* buf = (float*)malloc(sizeof(float)*wh*2);
+    double* myLogAmplitude = get_log_amplitude(out, width, height);
+    double* myPhase = get_phase_angle(out, width, height);
+    double* img_avg_filtered = mean_filter(myLogAmplitude, width, height);
+    
+    double mySpectralResidual;
     for (i = 0; i < wh; ++i) {
         mySpectralResidual = myLogAmplitude[i] - img_avg_filtered[i];
-        buf[2*i] = exp(mySpectralResidual)*cos(myPhase[i]); 
-        buf[2*i+1] = exp(mySpectralResidual)*sin(myPhase[i]);
+        in2[i][0] = exp(mySpectralResidual)*cos(myPhase[i]); 
+        in2[i][1] = exp(mySpectralResidual)*sin(myPhase[i]);
     }
     
-    float* saliency = ifft2D(buf, width, height);
+    fftw_plan ifft = fftw_plan_dft_2d(height, width, in2, out, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_execute(ifft);
+    
+    double tmp_saliency[wh];
     for (i = 0; i < wh; ++i) {
-        saliency[i] = saliency[i]*saliency[i];
+        tmp_saliency[i] = (out[i][0]*out[i][0] + out[i][1]*out[i][1])/wh/wh;
     }
     
-    float* saliencyMap = gaussian_filter(saliency, width, height);
+    float* saliencyMap = gaussian_filter(tmp_saliency, width, height);
     
     float max = amax(saliencyMap, wh), min = amin(saliencyMap, wh);
     float dif = max - min;
@@ -364,15 +414,15 @@ float *get_saliency_map(image_rgb* rgb) {
         saliencyMap[i] = (saliencyMap[i] - min) / dif;
     }
     
-    
-    free(gray);
-    free(myFFT);
     free(myLogAmplitude);
     free(myPhase);
     free(img_avg_filtered);
-    free(buf);
-    free(saliency);
-    
+    fftw_destroy_plan(fft);
+    fftw_destroy_plan(ifft);
+    fftw_free(in1);
+    fftw_free(in2);
+    fftw_free(out);
+
     return saliencyMap;
 }
 

@@ -8,6 +8,7 @@
 #include <opencv/highgui.h>
 
 #include "tools.h"
+#include "sift.h"
 #include "feature.h"
 
 fbrightness get_brightness_feature(image_hsl* hsl) {
@@ -393,7 +394,7 @@ fcolor_harmony get_color_harmony_feature(image_hsl* hsl) {
     fsort(alpha, 0, 7);
     
     feature.bestfit = alpha[6] * 2*PI;
-    feature.fisrt_two_dev = fabs(alpha[5] - alpha[6]) * 2*PI;
+    feature.first_two_dev = fabs(alpha[5] - alpha[6]) * 2*PI;
     feature.avg_dev = amean(alpha, 7) * 2*PI;
     return feature;
 }
@@ -959,9 +960,8 @@ fsaliency_map get_saliency_map_feature(float* saliencyMap, int width, int height
     return feature;
 }
 
-int get_face_feature(char* filename, CvHaarClassifierCascade* classifier, CvSize minSize) {
+int get_face_feature(IplImage* image_detect, CvHaarClassifierCascade* classifier, CvSize minSize) {
 
-	IplImage* image_detect = cvLoadImage(filename, 1);
 	// Quit the application if the input source or the classifier data failed to load properly.
 	if( !classifier) {
 		printf("Can not load classifier!\n");
@@ -1013,7 +1013,16 @@ int get_face_feature(char* filename, CvHaarClassifierCascade* classifier, CvSize
 	// Clean up allocated OpenCV objects.
 	cvReleaseMemStorage(&facesMemStorage);
 	cvReleaseImage(&tempFrame);
-	cvReleaseImage(&image_detect);
 
 	return number_of_faces;
+}
+
+// just a wrapper
+int get_sift_number(IplImage* img) {
+	struct feature* feat;
+	int r;
+	r = sift_features(img, &feat);
+	free(feat);
+
+	return r;
 }

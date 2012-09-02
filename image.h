@@ -2,6 +2,8 @@
 #ifndef IMAGE_H
 #define	IMAGE_H
 
+#include <opencv/cv.h>
+
 #define NEWA(type,n) (type*)malloc(sizeof(type)*(n))
 #define NEW(type) NEWA(type,1)
 
@@ -51,7 +53,10 @@ void image_rgb_delete(image_rgb* image);
 /* ************************************************** */
 
 // read a RGB image from a common compressed image format(such as 'JPG', 'BMP' etc), using OpenCV
-image_rgb* load_rgb_image(const char *fname, int iscolor); // tested JPG & BMP format, and it should also works for other common format
+image_rgb* load_image(const char *fname, int iscolor); // tested JPG & BMP format, and it should also works for other common format
+
+// load an image from an OpenCV format image
+image_rgb* load_cv_image(IplImage *image);
 
 // convert RGB color space to HSL color space
 image_hsl* rgb2hsl(image_rgb *rgb); // tested

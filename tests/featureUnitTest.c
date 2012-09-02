@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <opencv2/highgui/highgui_c.h>
 #include "CUnit/Basic.h"
 #include "feature.h"
 #include "tools.h"
@@ -226,7 +227,7 @@ void testGet_color_harmony_feautre() {
 	hsl1->s[0] = 0.5;
 	feature = get_color_harmony_feature(hsl1);	
 	CU_ASSERT_DOUBLE_EQUAL(feature.bestfit, 0.1*2*PI*0.5, 0.00001);
-	CU_ASSERT_DOUBLE_EQUAL(feature.fisrt_two_dev, 0.2*2*PI*0.5, 0.00001);
+	CU_ASSERT_DOUBLE_EQUAL(feature.first_two_dev, 0.2*2*PI*0.5, 0.00001);
 	CU_ASSERT_DOUBLE_EQUAL(feature.avg_dev, 1.436, 0.001);
 	//free(feature);
 
@@ -237,7 +238,7 @@ void testGet_color_harmony_feautre() {
 	hsl2->s[1] = 1;
 	feature = get_color_harmony_feature(hsl2);
 	CU_ASSERT_DOUBLE_EQUAL(feature.bestfit, 0, 0.00001);
-	CU_ASSERT_DOUBLE_EQUAL(feature.fisrt_two_dev, 0, 0.00001);
+	CU_ASSERT_DOUBLE_EQUAL(feature.first_two_dev, 0, 0.00001);
 	CU_ASSERT_DOUBLE_EQUAL(feature.avg_dev, 1.1220, 0.02);
 	//free(feature);
 	
@@ -604,7 +605,7 @@ void get_segcolor_harmony_feature_test(){
    image_hsl_delete(seghsl);
    CU_ASSERT_DOUBLE_EQUAL(feat.avg_dev,feat_test.avg_dev,0.00001);
    CU_ASSERT_DOUBLE_EQUAL(feat.bestfit,feat_test.bestfit,0.00001);
-   CU_ASSERT_DOUBLE_EQUAL(feat.fisrt_two_dev,feat_test.fisrt_two_dev,0.00001);
+   CU_ASSERT_DOUBLE_EQUAL(feat.first_two_dev,feat_test.first_two_dev,0.00001);
    //free(feat_test);
    
 }
@@ -661,14 +662,23 @@ void get_saliency_map_feature_test() {
 
 void get_face_feature_test() {
 	CvHaarClassifierCascade* classifier = (CvHaarClassifierCascade*)cvLoad("haarcascade_frontalface_alt_tree.xml", 0, 0, 0);
-	int n1 = get_face_feature("img/1.jpg", classifier, cvSize(10, 20));
-	int n2 = get_face_feature("img/2.jpg", classifier, cvSize(10, 20));
-	int n3 = get_face_feature("img/3.jpg", classifier, cvSize(10, 20));
-	int n4 = get_face_feature("img/16.jpg", classifier, cvSize(10, 20));
+	IplImage* image_detect1 = cvLoadImage("img/1.jpg", 1);
+	IplImage* image_detect2 = cvLoadImage("img/2.jpg", 1);
+	IplImage* image_detect3 = cvLoadImage("img/3.jpg", 1);
+	IplImage* image_detect4 = cvLoadImage("img/16.jpg", 1);
+	int n1 = get_face_feature(image_detect1, classifier, cvSize(10, 20));
+	int n2 = get_face_feature(image_detect2, classifier, cvSize(10, 20));
+	int n3 = get_face_feature(image_detect3, classifier, cvSize(10, 20));
+	int n4 = get_face_feature(image_detect4, classifier, cvSize(10, 20));
 	CU_ASSERT_EQUAL(n1, 0);
 	CU_ASSERT_EQUAL(n2, 1);
 	CU_ASSERT_EQUAL(n3, 1);
 	CU_ASSERT_EQUAL(n4, 1);
+	
+	cvReleaseImage(&image_detect1);
+	cvReleaseImage(&image_detect2);
+	cvReleaseImage(&image_detect3);
+	cvReleaseImage(&image_detect4);
 }
 
 int main() {

@@ -5,6 +5,7 @@
 #include <malloc.h>
 #include <memory.h>
 #include <math.h>
+
 #include "tools.h"
 
 void list_files(char *path, char** filenames, int* index) {
@@ -16,8 +17,7 @@ void list_files(char *path, char** filenames, int* index) {
         fprintf( stderr, "Cannot open directory:%s\n", path );
         return;
     }
-    while(ent=readdir(pDir))
-    {
+    while(ent=readdir(pDir)) {
         //得到读取文件的绝对路径名
         snprintf( dir, 512,"%s/%s", path, ent->d_name );   
         //得到文件信息
@@ -250,13 +250,14 @@ float get_arc_length(float a, float b) {
     return r;
 }
 
+/*
 void fft1D(float *arrayBuf, int n) {
 	int i, k, r;
-	float *buf1 = (float*)malloc(sizeof(float) * n * 2);
+	float buf1[2*n];
 	for(i=0;i<n*2;i++)
 		buf1[i]=arrayBuf[i];
 
-	float *buf2 = (float*)malloc(sizeof(float)*n*2);
+	float buf2[2*n];
 	int t1,t2;
 	for(r=1;pow(2,r)<n;r++){
 		t1=pow(2,r);
@@ -275,8 +276,8 @@ void fft1D(float *arrayBuf, int n) {
 		t1=pow(2,r);
 		for(k=0;k<n/t1;k++){
 			for(i=t1/2;i<t1;i++){
-				c=cos(2*3.1415927*(-i+t1/2+n/2)/t1);				
-				s=sin(2*3.1415927*(-i+t1/2+n/2)/t1);
+				c=cos(2*PI*(-i+t1/2+n/2)/t1);				
+				s=sin(2*PI*(-i+t1/2+n/2)/t1);
 				buf1[k*t1*2+i*2+0]= buf2[k*t1*2+i*2+0]*c - buf2[k*t1*2+i*2+1]*s;				
 				buf1[k*t1*2+i*2+1]=buf2[k*t1*2+i*2+1]*c+buf2[k*t1*2+i*2+0]*s;
 			}
@@ -298,10 +299,8 @@ void fft1D(float *arrayBuf, int n) {
 	}
 	
 	for(i=0;i<n*2;i++)
-			arrayBuf[i]=buf2[i];
+		arrayBuf[i]=buf2[i];
 
-	free(buf2);
-	free(buf1);
 }
 
 float* fft2D(float* imgBuf, int width, int height) {
@@ -312,19 +311,18 @@ float* fft2D(float* imgBuf, int width, int height) {
 		buf[i*2+1]=0;
 	}
 
-	float *array=(float*)malloc(sizeof(float)*height*2);
+	float array[2*height];
 	for(u=0;u<width;u++){
 		for(v=0;v<height;v++){
 			array[v*2+0]=buf[v*width*2+u*2+0];
 			array[v*2+1]=buf[v*width*2+u*2+1];
 		}
-		fft1D(array, width);
+		fft1D(array, height);
 		for(v=0;v<height;v++){
 			buf[v*width*2+u*2+0]=array[v*2+0];
 			buf[v*width*2+u*2+1]=array[v*2+1];
 		}
 	}
-	free(array);
 
 	for(v=0;v<height;v++){
 		fft1D(buf+v*width*2, width);
@@ -383,8 +381,8 @@ void ifft1D(float *arrayBuf, int n) {
 		t1=pow(2,r);
 		for(k=0;k<n/t1;k++){
 			for(i=t1/2;i<t1;i++){
-				c=cos(2*3.1415927*(-i+t1/2)/t1);				
-				s=sin(2*3.1415927*(-i+t1/2)/t1);
+				c=cos(-2*PI*(i-t1/2)/t1);				
+				s=sin(-2*PI*(i-t1/2)/t1);
 				buf1[k*t1*2+i*2+0]= buf2[k*t1*2+i*2+0]*c - buf2[k*t1*2+i*2+1]*s;				
 				buf1[k*t1*2+i*2+1]=buf2[k*t1*2+i*2+1]*c+buf2[k*t1*2+i*2+0]*s;
 			}
@@ -410,6 +408,7 @@ void ifft1D(float *arrayBuf, int n) {
 
 	free(buf2);
 	free(buf1);
+	
 }
 
 float* ifft2D(float* fftBuf, int width, int height) {	
@@ -428,7 +427,7 @@ float* ifft2D(float* fftBuf, int width, int height) {
 			array[v*2+0]=buf[v*width*2+u*2+0];
 			array[v*2+1]=buf[v*width*2+u*2+1];
 		}
-		ifft1D(array, width);
+		ifft1D(array, height);///////////////////////
 		for(v=0;v<height;v++){
 			buf[v*width*2+u*2+0]=array[v*2+0];
 			buf[v*width*2+u*2+1]=array[v*2+1];
@@ -448,36 +447,37 @@ float* ifft2D(float* fftBuf, int width, int height) {
 	
     return img;
 }
+*/
 
-float* get_phase_angle(float* fftBuf, int width, int height) {
+double* get_phase_angle(fftw_complex* fftBuf, int width, int height) {
     int i, j;
-    float* angle = (float*)malloc(sizeof(float)*width*height);
+    double* angle = (double*)malloc(sizeof(double)*width*height);
     
     for (i = 0; i < height; ++i) {
         for (j = 0; j < width; ++j) {
-            angle[i*width+j] = atan2(fftBuf[2*(i*width+j)+1], fftBuf[2*(i*width+j)]);
+            angle[i*width+j] = atan2(fftBuf[i*width+j][1], fftBuf[i*width+j][0]);
         }
     }
     
     return angle;
 }
 
-float* get_log_amplitude(float* fftBuf, int width, int height) {
+double* get_log_amplitude(fftw_complex* fftBuf, int width, int height) {
     int i, j;
-    float* amplitude = (float*)malloc(sizeof(float)*width*height);
+    double* amplitude = (double*)malloc(sizeof(double)*width*height);
     
     for (i = 0; i < height; ++i) {
         for (j = 0; j < width; ++j) {
-            amplitude[i*width+j] = log(sqrt(fftBuf[2*(i*width+j)+1]*fftBuf[2*(i*width+j)+1] + fftBuf[2*(i*width+j)]*fftBuf[2*(i*width+j)]));
+            amplitude[i*width+j] = log(sqrt(fftBuf[i*width+j][1]*fftBuf[i*width+j][1] + fftBuf[i*width+j][0]*fftBuf[i*width+j][0]));
         }
     }
     
     return amplitude;
 }
 
-float* mean_filter(float* data, int width, int height) {
+double* mean_filter(double* data, int width, int height) {
     int i, j, k, l;
-    float tempData[height+2][width+2];
+    double tempData[height+2][width+2];
     
     for (i = 0; i < height; ++i) {
         for (j = 0; j < width; ++j) {
@@ -499,7 +499,7 @@ float* mean_filter(float* data, int width, int height) {
     tempData[height+1][width+1] = data[height*width-1];
     
     double tmp;
-    float* filtered_data = (float*)malloc(sizeof(float)*width*height);
+    double* filtered_data = (double*)malloc(sizeof(double)*width*height);
     for (i = 0; i < height; ++i) {
         for (j = 0; j < width; ++j) {
             tmp = 0;
@@ -515,21 +515,21 @@ float* mean_filter(float* data, int width, int height) {
     return filtered_data;
 }
 
-float* gaussian_filter(float* data, int width, int height) {
-    float templates[9][9] = {   {0.0022759,0.0039843,0.0059439,0.0075562,0.0081855,0.0075562,0.0059439,0.0039843,0.0022759},
-                                {0.0039843,0.0069753,0.010406,0.013228,0.01433,0.013228,0.010406,0.0069753,0.0039843},
-                                {0.0059439,0.010406,0.015524,0.019735,0.021378,0.019735,0.015524,0.010406,0.0059439},
-                                {0.0075562,0.013228,0.019735,0.025088,0.027177,0.025088,0.019735,0.013228,0.0075562},
-                                {0.0081855,0.01433,0.021378,0.027177,0.02944,0.027177,0.021378,0.01433,0.0081855},
-                                {0.0075562,0.013228,0.019735,0.025088,0.027177,0.025088,0.019735,0.013228,0.0075562},
-                                {0.0059439,0.010406,0.015524,0.019735,0.021378,0.019735,0.015524,0.010406,0.0059439},
-                                {0.0039843,0.0069753,0.010406,0.013228,0.01433,0.013228,0.010406,0.0069753,0.0039843},
-                                {0.0022759,0.0039843,0.0059439,0.0075562,0.0081855,0.0075562,0.0059439,0.0039843,0.0022759}
-                            };
+float* gaussian_filter(double* data, int width, int height) {
+    double templates[9][9] = {{0.00227588683753515,0.00398433250025865,0.00594392562750064,0.00755621040353381,0.00818554501077916,0.00755621040353381,0.00594392562750064,0.00398433250025865,0.00227588683753515},
+{0.00398433250025865,0.00697526134023882,0.0104058671398706,0.0132284497599179,0.0143302085503070,0.0132284497599179,0.0104058671398706,0.00697526134023882,0.00398433250025865},
+{0.00594392562750064,0.0104058671398706,0.0155237295996327,0.0197345280633523,0.0213781590376981,0.0197345280633523,0.0155237295996327,0.0104058671398706,0.00594392562750064},
+{0.00755621040353381,0.0132284497599179,0.0197345280633523,0.0250875020325306,0.0271769665121096,0.0250875020325306,0.0197345280633523,0.0132284497599179,0.00755621040353381},
+{0.00818554501077916,0.0143302085503070,0.0213781590376981,0.0271769665121096,0.0294404563612037,0.0271769665121096,0.0213781590376981,0.0143302085503070,0.00818554501077916},
+{0.00755621040353381,0.0132284497599179,0.0197345280633523,0.0250875020325306,0.0271769665121096,0.0250875020325306,0.0197345280633523,0.0132284497599179,0.00755621040353381},
+{0.00594392562750064,0.0104058671398706,0.0155237295996327,0.0197345280633523,0.0213781590376981,0.0197345280633523,0.0155237295996327,0.0104058671398706,0.00594392562750064},
+{0.00398433250025865,0.00697526134023882,0.0104058671398706,0.0132284497599179,0.0143302085503070,0.0132284497599179,0.0104058671398706,0.00697526134023882,0.00398433250025865},
+{0.00227588683753515,0.00398433250025865,0.00594392562750064,0.00755621040353381,0.00818554501077916,0.00755621040353381,0.00594392562750064,0.00398433250025865,0.00227588683753515}};
+
     int i, j, k, l;
-    float tempData[height+8][width+8];
+    double tempData[height+8][width+8];
     for (i = 0; i < height+8; ++i) {
-        memset(tempData[i], 0, sizeof(float)*(width+8));
+        memset(tempData[i], 0, sizeof(double)*(width+8));
     }
     
     for (i = 0; i < height; ++i) {
