@@ -3,6 +3,10 @@
 #include <malloc.h>
 #include <memory.h>
 
+#include <opencv/cv.h>
+#include <opencv/cxcore.h>
+#include <opencv/highgui.h>
+
 #include "tools.h"
 #include "feature.h"
 
@@ -774,4 +778,242 @@ fsegment_lightness get_seglightness_feature(image_hsl* hsl,int* seglable, int la
     feat.seg_ave_contrast=get_segavelightness_contrast(hsl,seglable,lablenum);
     
     return feat;
+}
+
+fsaliency_map get_saliency_map_feature(float* saliencyMap, int width, int height) {
+	int i, j, k;
+	int wh = width * height;
+	int direction[8][2]={{0,1},{1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1}};
+	fsaliency_map feature;
+	
+	float alpha = 3 * amean(saliencyMap, wh);
+
+	unsigned char* binaryMap = NEWA(unsigned char, wh);
+	memset(binaryMap, 0, wh*sizeof(unsigned char));
+	float r_bg = 0;
+
+	for (i = 0; i < height; ++i) {
+		for (j = 0; j < width; ++j) {
+			if (saliencyMap[i*width+j] > alpha) {
+				binaryMap[i*width+j] = 1;
+				r_bg += 1;
+			}
+		}
+	}
+	r_bg = (float)(wh - r_bg) / wh;
+    // 1st
+	feature.r_bg = r_bg;
+
+    unsigned char flag[wh];
+    memset(flag, 0, wh*sizeof(unsigned char));
+
+	typedef struct {
+        int x;
+        int y;
+    } iPoint;
+	typedef struct {
+		float x;
+		float y;
+	} fPoint;
+
+    //栈申请，此处假定进栈的像素最多为图像总像素数
+    iPoint stack[wh];
+    //栈顶指针
+    int top;
+    //当前正处理的点和弹出的点
+    iPoint currentPoint, popPoint;
+    //临时变量
+    int temp1, temp2;
+	int tmp_connected;
+	int n_fg = 0, n_bg = 0;
+	int s_fg[wh], s_bg[wh];
+    float avg_sv[wh]; // average saliency value;
+    float tmp_avg_sv;
+	fPoint p_fg[wh]/*, p_bg[wh]*/;
+	fPoint tmp_point;
+
+	unsigned char is_fg = 0;
+    
+    for (i = 0; i < height; ++i) {
+        for (j = 0; j < width; ++j) {
+            // did not go through it before
+            if (!flag[i*width+j]) {
+				tmp_point.x = i;
+				tmp_point.y = j;	
+                tmp_avg_sv = saliencyMap[i*width+j];
+				tmp_connected = 1;    // 记录该连通区域点个数
+				if (binaryMap[i*width+j]) {
+					is_fg = 1;
+					n_fg++;           // 记录连通区域数目（前景）
+				}
+				else {
+					is_fg = 0;
+					n_bg++;           // 记录连通区域数目（背景）
+				}
+                //记录种子像素的灰度值
+                temp1 = binaryMap[i*width+j];
+                //将给定种子点置标记1,入栈
+                flag[i*width+j] = 1;
+                top=0;
+                stack[top].x=i;
+                stack[top].y=j;
+
+                //堆栈
+                while(top>-1){
+                    //弹出栈顶元素,该元素已经生长过
+                    popPoint.x = stack[top].x;
+                    popPoint.y = stack[top].y;
+                    top--;
+
+                    //考察弹出像素周围是否有没有生长的像素
+                    for(k=0; k<8; k++){
+                        //待考察的邻域点
+                        currentPoint.x=popPoint.x+direction[k][0];
+                        currentPoint.y=popPoint.y+direction[k][1];
+
+                        //如果待考察的点不在图像内，则跳过
+                        if(currentPoint.x < 0 || currentPoint.x > height-1||
+                            currentPoint.y < 0 || currentPoint.y > width-1)
+                            continue;
+
+                        //弹出的点周围有尚没生长的点
+                        if(!flag[currentPoint.x*width+currentPoint.y]){
+                            temp2 = binaryMap[currentPoint.x*width+currentPoint.y];
+                            if(temp1 == temp2) {
+                                tmp_avg_sv += saliencyMap[currentPoint.x*width+currentPoint.y];
+                                ++tmp_connected;
+								tmp_point.x = (tmp_point.x*(tmp_connected-1) + currentPoint.x) / tmp_connected;
+								tmp_point.y = (tmp_point.y*(tmp_connected-1) + currentPoint.y) / tmp_connected;
+                                //给该点置生长标记0
+                                flag[currentPoint.x*width+currentPoint.y] = 1;
+                                top++;
+                                stack[top].x=currentPoint.x;
+                                stack[top].y=currentPoint.y;
+                            }
+                        }
+                    }
+
+                }
+                if (is_fg) {
+					s_fg[n_fg-1] = tmp_connected;		
+					p_fg[n_fg-1] = tmp_point;
+                    avg_sv[n_fg-1] = tmp_avg_sv / tmp_connected;
+                }
+				else {
+					s_bg[n_bg-1] = tmp_connected;
+					//p_bg[n_bg-1] = tmp_point;
+				}
+            }
+        }
+    }
+	// 2nd
+	feature.n_cc = n_fg;
+	int index_fg[n_fg], index_bg[n_bg];
+	isort(s_fg, index_fg, n_fg);
+	// 3rd
+	feature.r_lc = (float)s_fg[0] / wh;
+    // 4th
+    feature.asv_lc = avg_sv[index_fg[0]];
+    // 5th
+    feature.n_cc_bg = n_bg;
+    isort(s_bg, index_bg, n_bg);
+    // 6th
+    feature.r_lc_bg = (float)s_bg[0] / wh;
+    
+    float dis = 0;
+    for (i = 0; i < n_fg-1; ++i) {
+        for (j = i+1; j < n_fg; ++j) {
+            dis += sqrt((p_fg[i].x - p_fg[j].x)*(p_fg[i].x - p_fg[j].x)/(height*height) + (p_fg[i].y - p_fg[j].y)*(p_fg[i].y - p_fg[j].y)/(width*width));
+        }
+    }
+    // 7th
+    feature.d_cc = dis;
+    
+    fPoint p[4];
+    float tmp_dis, min_dis = 1e30;
+    p[0].x = (float)height/3;
+    p[0].y = (float)width/3;
+    p[1].x = (float)height/3;
+    p[1].y = (float)width/3*2;
+    p[2].x = (float)height/3*2;
+    p[2].y = (float)width/3;
+    p[3].x = (float)height/3*2;
+    p[3].y = (float)width/3*2;
+
+    for (i = 0; i < 4; ++i) {
+        tmp_dis = sqrt((p_fg[index_fg[0]].x - p[i].x)*(p_fg[index_fg[0]].x - p[i].x)/(height*height) + (p_fg[index_fg[0]].y - p[i].y)*(p_fg[index_fg[0]].y - p[i].y)/(width*width));
+        if (tmp_dis < min_dis)
+            min_dis = tmp_dis;
+    }
+    // 8th
+    feature.d_rtp = min_dis;
+    
+    p[0].x = (float)height/2;
+    p[0].y = (float)width/2;
+    min_dis = sqrt((p_fg[index_fg[0]].x - p[0].x)*(p_fg[index_fg[0]].x - p[0].x)/(height*height) + (p_fg[index_fg[0]].y - p[0].y)*(p_fg[index_fg[0]].y - p[0].y)/(width*width));
+    // 9th
+    feature.d_ci = min_dis;
+    
+    free(binaryMap);
+        
+    return feature;
+}
+
+int get_face_feature(char* filename, CvHaarClassifierCascade* classifier, CvSize minSize) {
+
+	IplImage* image_detect = cvLoadImage(filename, 1);
+	// Quit the application if the input source or the classifier data failed to load properly.
+	if( !classifier) {
+		printf("Can not load classifier!\n");
+		return -1;
+	}
+
+	// Create a CvMemStorage object for use by the face detection function.
+	CvMemStorage* facesMemStorage = cvCreateMemStorage(0);
+
+	IplImage* tempFrame = cvCreateImage(cvSize(image_detect->width, 
+		image_detect->height), IPL_DEPTH_8U, image_detect->nChannels);
+
+	// Copy the current frame into the temporary image.  Also, make 
+	// sure the images have the same orientation.
+	if(image_detect->origin == IPL_ORIGIN_TL) {
+		cvCopy(image_detect, tempFrame, 0);
+	}
+	else {
+		cvFlip(image_detect, tempFrame, 0);
+	}
+
+	/* Perform face detection on the temporary image, adding a rectangle around the detected face. */
+
+	// "Resets" the memory but does not deallocate it.
+	cvClearMemStorage(facesMemStorage);
+
+	// Run the main object recognition function.  The arguments are: 
+	// 1. the image to use
+	// 2. the pre-trained Haar classifier cascade data
+	// 3. memory storage for rectangles around recognized objects
+	// 4. a scale factor "by which the search window is scaled between the 
+	//  subsequent scans, for example, 1.1 means increasing window by 10%"
+	// 5. the "minimum number (minus 1) of neighbor rectangles that makes up 
+	//  an object. All the groups of a smaller number of rectangles than 
+	//  min_neighbors-1 are rejected. If min_neighbors is 0, the function 
+	//  does not any grouping at all and returns all the detected candidate 
+	//  rectangles, which may be useful if the user wants to apply a 
+	//  customized grouping procedure."
+	// 6. flags which determine the mode of operation
+	// 7. the minimum object size (if possible, increasing this will 
+	//  really speed up the process)
+	CvSeq* faces = cvHaarDetectObjects(tempFrame, classifier, facesMemStorage, 1.1, 
+		2, CV_HAAR_DO_CANNY_PRUNING, minSize, cvSize(image_detect->width, image_detect->height));
+
+	int number_of_faces = 0;
+	if (faces)
+		number_of_faces = faces->total;
+
+	// Clean up allocated OpenCV objects.
+	cvReleaseMemStorage(&facesMemStorage);
+	cvReleaseImage(&tempFrame);
+	cvReleaseImage(&image_detect);
+
+	return number_of_faces;
 }

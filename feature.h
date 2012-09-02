@@ -1,6 +1,7 @@
 
 #ifndef FEATURE_H
 #define	FEATURE_H
+#include <opencv/cv.h>
 #include "image.h"
 
 #define PI 3.1415927
@@ -68,6 +69,18 @@ typedef struct {
     float fhues6;
 } fSegment_hues;
 
+typedef struct {
+    float r_bg; // background size
+	int n_cc;     // number of connected components in the binary map
+	float r_lc;   // size of the largest components in the binary saliency map relative to the whole image
+	float asv_lc; // average saliency value of the largest component in the binary saliency map
+	int n_cc_bg;  // number of connected components in the image background.
+	float r_lc_bg; // size of the largest connected component in the background relative to the whole image
+	float d_cc;   // distance between connected components
+	float d_rtp;  // distance from the rule of the third points
+	float d_ci;   // distance from the center of image
+} fsaliency_map;
+
 // Get brightness feature - (1)
 fbrightness get_brightness_feature(image_hsl* hsl); // tested
 
@@ -129,4 +142,9 @@ float get_seglightness_average(image_hsl* hsl,int* seglable, int lable);
 float get_seglightness_std(image_hsl* hsl,int* seglable, int lablenum);
 float get_segavelightness_contrast(image_hsl* hsl,int* seglable, int lablenum);
 fsegment_lightness get_seglightness_feature(image_hsl* hsl,int* seglable, int lablenum);
+
+fsaliency_map get_saliency_map_feature(float* saliencyMap, int width, int height); // tested
+
+int get_face_feature(char* filename, CvHaarClassifierCascade* classifier, CvSize minSize); // tested
+
 #endif	/* FEATURES_H */

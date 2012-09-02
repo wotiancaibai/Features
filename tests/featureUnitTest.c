@@ -609,6 +609,68 @@ void get_segcolor_harmony_feature_test(){
    
 }
 
+void get_saliency_map_feature_test() {
+    float* saliencyMap = (float*)malloc(sizeof(float)*5*5);
+    memset(saliencyMap, 0, 25*sizeof(float));
+    int i, j;
+    saliencyMap[0] = 0.4;
+    saliencyMap[1] = 0.5;
+    saliencyMap[3] = 0.5;
+    saliencyMap[5] = 0.7;
+    saliencyMap[6] = 0.5;
+    saliencyMap[13] = 0.5;
+    fsaliency_map feature = get_saliency_map_feature(saliencyMap, 5, 5);
+    CU_ASSERT_DOUBLE_EQUAL(feature.r_bg, 0.76000, 0.00001);
+    CU_ASSERT_EQUAL(feature.n_cc, 3);
+	CU_ASSERT_DOUBLE_EQUAL(feature.r_lc, 0.16000, 0.00001);
+	CU_ASSERT_DOUBLE_EQUAL(feature.asv_lc, 0.52500, 0.00001);
+	CU_ASSERT_EQUAL(feature.n_cc_bg, 1);
+	CU_ASSERT_DOUBLE_EQUAL(feature.r_lc_bg, 0.76000, 0.00001);
+	CU_ASSERT_DOUBLE_EQUAL(feature.d_cc, 1.4930, 0.0001);
+	CU_ASSERT_DOUBLE_EQUAL(feature.d_rtp, 0.32998, 0.00001);
+	CU_ASSERT_DOUBLE_EQUAL(feature.d_ci, 0.56569, 0.00001);
+	free(saliencyMap);
+
+	saliencyMap = (float*)malloc(5*6*sizeof(float));
+	memset(saliencyMap, 0, 30*sizeof(float));
+    saliencyMap[0] = 0.1;
+    saliencyMap[1] = 0.9;
+    saliencyMap[4] = 0.8;
+    saliencyMap[5] = 0.8;
+    saliencyMap[7] = 0.8;
+    saliencyMap[10] = 0.6;	
+    saliencyMap[11] = 0.1;
+    saliencyMap[12] = 0.1;
+    saliencyMap[13] = 0.9;
+    saliencyMap[19] = 0.8;
+    saliencyMap[22] = 0.9;
+    saliencyMap[25] = 0.8;
+	
+	feature = get_saliency_map_feature(saliencyMap, 6, 5);
+    CU_ASSERT_DOUBLE_EQUAL(feature.r_bg, 0.73333, 0.00001);
+    CU_ASSERT_EQUAL(feature.n_cc, 3);
+	CU_ASSERT_DOUBLE_EQUAL(feature.r_lc, 0.16667, 0.00001);
+	CU_ASSERT_DOUBLE_EQUAL(feature.asv_lc, 0.84000, 0.00001);
+	CU_ASSERT_EQUAL(feature.n_cc_bg, 2);
+	CU_ASSERT_DOUBLE_EQUAL(feature.r_lc_bg, 0.56667, 0.00001);
+	CU_ASSERT_DOUBLE_EQUAL(feature.d_cc, 1.8516, 0.0001);
+	CU_ASSERT_DOUBLE_EQUAL(feature.d_rtp, 0.17951, 0.00001);
+	CU_ASSERT_DOUBLE_EQUAL(feature.d_ci, 0.34801, 0.00001);
+	free(saliencyMap);	
+}
+
+void get_face_feature_test() {
+	CvHaarClassifierCascade* classifier = (CvHaarClassifierCascade*)cvLoad("haarcascade_frontalface_alt_tree.xml", 0, 0, 0);
+	int n1 = get_face_feature("1.jpg", classifier, cvSize(10, 20));
+	int n2 = get_face_feature("2.jpg", classifier, cvSize(10, 20));
+	int n3 = get_face_feature("3.jpg", classifier, cvSize(10, 20));
+	int n4 = get_face_feature("16.jpg", classifier, cvSize(10, 20));
+	CU_ASSERT_EQUAL(n1, 0);
+	CU_ASSERT_EQUAL(n2, 1);
+	CU_ASSERT_EQUAL(n3, 1);
+	CU_ASSERT_EQUAL(n4, 1);
+}
+
 int main() {
     CU_pSuite pSuite = NULL;
 
@@ -639,7 +701,9 @@ int main() {
             (NULL == CU_add_test(pSuite, "get_seghues_feature_1to5_test", get_seghues_feature_1to5_test))||
             (NULL == CU_add_test(pSuite, "get_seghues_feature_test", get_seghues_feature_test))||
             (NULL == CU_add_test(pSuite, "get_seglightness_feature_test", get_seglightness_feature_test))||
-            (NULL == CU_add_test(pSuite, "get_segcolor_harmony_feature_test", get_segcolor_harmony_feature_test))	
+            (NULL == CU_add_test(pSuite, "get_segcolor_harmony_feature_test", get_segcolor_harmony_feature_test)) ||
+            (NULL == CU_add_test(pSuite, "get_saliency_map_feature_test", get_saliency_map_feature_test)) ||
+			(NULL == CU_add_test(pSuite, "get_face_feature_test", get_face_feature_test))
             ) {
         CU_cleanup_registry();
         return CU_get_error();
