@@ -6,7 +6,6 @@
 #include <opencv/highgui.h>
 
 #include "tools.h"
-//#include "image.h"
 #include "feature.h"
 
 
@@ -60,7 +59,7 @@ int main(int argc, char** argv) {
             printf(" - progress: %6.2f%%\n", 100*(float)i/count);
         }
         // test
-        if ((i+1)%10==0)
+        if ((i+1)%200==0)
             break;
 		// load the image
 		opencv_img = cvLoadImage(filenames[i], 1);
@@ -136,7 +135,9 @@ int main(int argc, char** argv) {
 		fprintf(fpout, "%d\n", n_faces);
 	}
     fclose(fpout);
-
+    cvReleaseHaarClassifierCascade( &classifier );
+    free(filenames);
+    
     printf(" - progress: 100.00%%\n");
     
     return (EXIT_SUCCESS);
