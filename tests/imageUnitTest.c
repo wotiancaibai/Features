@@ -389,6 +389,7 @@ void maxarea_segment_test(){
     free(maxseg);
 }
 
+/*
 void ncut_main_seg_test(){
     int nr=10,nc=10;
     int* init_seglable=NEWA(int,nr*nc);
@@ -440,6 +441,7 @@ void ncut_main_seg_test(){
     free(init_seglable);
     free(seg.seglable);
 }
+*/
 
 int main() {
     CU_pSuite pSuite = NULL;
@@ -463,8 +465,8 @@ int main() {
         (NULL == CU_add_test(pSuite, "get_saliency_map_test", get_saliency_map_test))||
         (NULL == CU_add_test(pSuite, "count_segarea_test", count_segarea_test))||
         (NULL == CU_add_test(pSuite, "segment_hue_histogram_test", segment_hue_histogram_test))||
-        (NULL == CU_add_test(pSuite, "maxarea_segment_test", maxarea_segment_test))||  
-        (NULL == CU_add_test(pSuite, "ncut_main_seg_test", ncut_main_seg_test))
+        (NULL == CU_add_test(pSuite, "maxarea_segment_test", maxarea_segment_test))  
+        /*(NULL == CU_add_test(pSuite, "ncut_main_seg_test", ncut_main_seg_test))*/
        ){
         CU_cleanup_registry();
         return CU_get_error();

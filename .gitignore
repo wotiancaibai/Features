@@ -12,3 +12,7 @@
 *.a
 /build/
 /dist/
+
+# Directory
+/img/
+/seg/

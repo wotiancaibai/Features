@@ -475,7 +475,7 @@ int* maxarea_segment(int*seglable,int size,int lablenum){
 }
 
 //
-ncut_seg ncut_main_seg(int* initial_seglable,int nr,int nc){
+ncut_seg ncut_main_seg(char* filename,int nr,int nc){
     int size[5]={0};
     int imagesize=nr*nc;
     int*seglable=NEWA(int,imagesize);
@@ -483,7 +483,19 @@ ncut_seg ncut_main_seg(int* initial_seglable,int nr,int nc){
     int initial_lablenum=5;
     int lablenum=initial_lablenum;
     ncut_seg nseg;
-    
+    int initial_seglable[nr*nc];
+    FILE *fp = fopen(filename, "r");
+    if (!fp) {
+        printf("Can't open %s!\n", filename);
+        exit(1);
+    }
+    for (i = 0; i < nr; ++i) {
+        fscanf(fp, "%d", &initial_seglable[i*nc]);
+        for (j = 1; j < nc; ++j) {
+            fscanf(fp, ",%d", &initial_seglable[i*nc+j]);
+        }
+    }
+    fclose(fp);
     for(i=0;i<imagesize;++i){
         seglable[i]=initial_seglable[i];
     }
