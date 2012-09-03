@@ -484,6 +484,7 @@ ncut_seg ncut_main_seg(char* filename,int nr,int nc){
     int lablenum=initial_lablenum;
     ncut_seg nseg;
     int initial_seglable[nr*nc];
+    int noise_lable=0;
     FILE *fp = fopen(filename, "r");
     if (!fp) {
         printf("Can't open %s!\n", filename);
@@ -505,8 +506,15 @@ ncut_seg ncut_main_seg(char* filename,int nr,int nc){
         if(size[i]<5*imagesize/100){
             lablenum=lablenum-1;
             for(j=0;j<imagesize;++j){
-                if(initial_seglable[j]==i+1)
+                if(initial_seglable[j]==i+1){
+                    noise_lable=seglable[j];
                     seglable[j]=0;
+                }
+            }
+            
+            for(j=0;j<imagesize;++j){
+                if(seglable[j]>noise_lable)
+                    seglable[j]=seglable[j]-1;
             }
         }
     }
