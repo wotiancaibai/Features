@@ -36,11 +36,21 @@ fsaturation get_saturation_feature(image_hsl* hsl) {
     int len = width*height;
     fsaturation feature;
     
+
+    float a[40000];
+    int i;
+/*
+    fsort(hsl->s, 0, len);
+*/
+    for (i = 0; i < len; ++i) {
+        a[i] = hsl->s[i];
+    }
+
     mean = amean(hsl->s, len);
     stdev = get_stdev(hsl->s, len);
     max = amax(hsl->s, len);
     min = amin(hsl->s, len);
-    
+
     feature.mean = mean;
     feature.stdev = stdev;
     feature.max = max;
@@ -149,6 +159,9 @@ float get_sharpness_feature(image_hsl* hsl) {
                 }
             }
             u[i*width+j] /= 9;
+            if (u[i*width+j] < 0.001) {
+                u[i*width+j] = 0.001;
+            }
 			lp[i*width+j] = hsl->l[(i+1)*width+j] + hsl->l[(i-1)*width+j] + hsl->l[i*width+j+1] + hsl->l[i*width+j-1] - 4*hsl->l[i*width+j];
         }
     }
@@ -639,17 +652,17 @@ int get_seghues_feature3(int* seghistogram,int*seglable,int imagesize,int lablen
     return feat;
 }
 
-int get_seghues_feature4(int* seghistogram,int msize,int mlable){
-    int feat=0;
+float get_seghues_feature4(int* seghistogram,int msize,int mlable){
+    float feat=0;
     float c=0.01;
     int i=0,j=0;
-    int arcdis=0;
+    float arcdis=0;
     for(i=0;i<20;i++){
         for(j=i+1;j<20;j++){
             if(seghistogram[(mlable-1)*20+i]>=c*msize&&seghistogram[(mlable-1)*20+j]>=c*msize){
-                arcdis=(j-i)*18;
-                if(arcdis>180)
-                    arcdis=360-arcdis;
+                arcdis=(j-i)*0.05;
+                if(arcdis>0.5)
+                    arcdis=1.0-arcdis;
                 if(feat<arcdis)
                     feat=arcdis;             
             }          

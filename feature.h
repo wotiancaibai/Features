@@ -68,7 +68,7 @@ typedef struct {
     int fhues2;
     int fhues3;
     int fhues4;
-    int fhues5;
+    float fhues5;
     float fhues6;
 } fSegment_hues;
 
@@ -133,7 +133,7 @@ fSegment_hues get_seghues_feature(int*seglable,image_hsv* imagehsv,int nr,int nc
 int get_seghues_feature1(int* seghistogram,int imagesize,int mlable);
 int get_seghues_feature2(int* seghistogram,int*seglable,int imagesize,int lablenum);
 int get_seghues_feature3(int* seghistogram,int*seglable,int imagesize,int lablenum);
-int get_seghues_feature4(int* seghistogram,int msize,int mlable);
+float get_seghues_feature4(int* seghistogram,int msize,int mlable);
 float get_seghues_feature5(int* seghistogram,int*seglable,int imagesize,int lablenum);
 
 

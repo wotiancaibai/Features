@@ -448,7 +448,7 @@ int* segment_hue_histogram(int*seglable,image_hsv* imagehsv,int nr,int nc,int la
             for(k=0;k<lablenum;++k){
                 if(seglable[i*nc+j]==k+1){
                     if(imagehsv->s[i*nc+j]>0.2||imagehsv->v[i*nc+j]>0.2){
-                        m=imagehsv->h[i*nc+j]/18;
+                        m=(int)(imagehsv->h[i*nc+j]/0.05);
                         seghistogram[k*20+m]++;
                     }    
                 }

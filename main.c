@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
             printf(" - progress: %6.2f%%\n", 100*(float)i/count);
         }
         // test
-        if ((i+1)%200==0)
+        if ((i+1)%50==0)
             break;
 		// load the image
 		opencv_img = cvLoadImage(filenames[i], 1);
@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
 		
         // KGL
         fprintf(fpout, "%f,%f,", segment_size.rmaxsize, segment_size.rcontrast); // Segment size
-        fprintf(fpout, "%d,%d,%d,%d,%d,%f,", segment_hues.fhues1, segment_hues.fhues2, segment_hues.fhues3, segment_hues.fhues4, segment_hues.fhues5, segment_hues.fhues6); // Segment hues
+        fprintf(fpout, "%d,%d,%d,%d,%f,%f,", segment_hues.fhues1, segment_hues.fhues2, segment_hues.fhues3, segment_hues.fhues4, segment_hues.fhues5, segment_hues.fhues6); // Segment hues
 		fprintf(fpout, "%f,%f,%f,", segment_color_harmony.bestfit, segment_color_harmony.first_two_dev, segment_color_harmony.avg_dev); // Segment color harmony
         fprintf(fpout, "%f,%f,%f,", segment_lightness.mseg_ave, segment_lightness.seg_ave_std, segment_lightness.seg_ave_contrast); // Segment lightness
         // - KGL
