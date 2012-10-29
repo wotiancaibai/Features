@@ -36,21 +36,11 @@ fsaturation get_saturation_feature(image_hsl* hsl) {
     int len = width*height;
     fsaturation feature;
     
-
-    float a[40000];
-    int i;
-/*
-    fsort(hsl->s, 0, len);
-*/
-    for (i = 0; i < len; ++i) {
-        a[i] = hsl->s[i];
-    }
-
     mean = amean(hsl->s, len);
     stdev = get_stdev(hsl->s, len);
     max = amax(hsl->s, len);
     min = amin(hsl->s, len);
-
+    
     feature.mean = mean;
     feature.stdev = stdev;
     feature.max = max;
@@ -115,8 +105,12 @@ float get_naturalness_feature(image_hsl* hsl) {
     Nskin = exp(-0.5 * pow((S_avg_skin - 0.76)/0.52, 2));
     Ngrass = exp(-0.5 * pow((S_avg_grass - 0.81)/0.53, 2));
     Nsky = exp(-0.5 * pow((S_avg_sky - 0.43)/0.22, 2));
-    
-    naturalness = (Nskin * n_skin + Ngrass * n_grass + Nsky * n_sky) / (n_skin + n_grass + n_sky);
+    if ((n_skin + n_grass + n_sky) == 0) {
+        naturalness = 0;
+    }
+    else {
+        naturalness = (Nskin * n_skin + Ngrass * n_grass + Nsky * n_sky) / (n_skin + n_grass + n_sky);
+    }
     
     return naturalness;
 }

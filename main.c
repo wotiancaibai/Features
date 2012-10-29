@@ -59,8 +59,10 @@ int main(int argc, char** argv) {
             printf(" - progress: %6.2f%%\n", 100*(float)i/count);
         }
         // test
+/*
         if ((i+1)%50==0)
             break;
+*/
 		// load the image
 		opencv_img = cvLoadImage(filenames[i], 1);
 		rgb = load_cv_image(opencv_img);
