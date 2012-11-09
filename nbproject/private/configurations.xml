@@ -27,8 +27,9 @@
           <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" img re.txt</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" img feature20120914.cvs</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" img 4500502.jpg</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" img feature20120914.cvs</runcommand>
+        <runcommand>"${OUTPUT_PATH}" img 4500502.jpg</runcommand>
         <rundir></rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>
@@ -64,8 +65,9 @@
           <runcommandpicklistitem>"${OUTPUT_PATH}" img feature20120914.cvs</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" img feature20120915.cvs</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" img feature20120916.cvs</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" img 4500502.jpg</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" img feature20120916.cvs</runcommand>
+        <runcommand>"${OUTPUT_PATH}" img 4500502.jpg</runcommand>
         <rundir></rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>

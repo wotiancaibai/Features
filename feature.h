@@ -152,4 +152,6 @@ fsaliency_map get_saliency_map_feature(float* saliencyMap, int width, int height
 
 int get_face_feature(IplImage* image_detect, CvHaarClassifierCascade* classifier, CvSize minSize); // tested
 
+int get_sift_number(IplImage* img);
+
 #endif	/* FEATURES_H */

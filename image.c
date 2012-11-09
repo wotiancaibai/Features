@@ -116,7 +116,7 @@ image_rgb* load_image(const char *fname, int iscolor) {
 image_rgb* load_cv_image(IplImage *image) {
   int i, j, width, height, widthStep;
   if (!image) {
-	  printf("load image err!\n");
+	  printf("null point to cv image err!\n");
 	  exit(1);
   }
   width = image->width;
@@ -475,49 +475,94 @@ int* maxarea_segment(int*seglable,int size,int lablenum){
 }
 
 //
-ncut_seg ncut_main_seg(char* filename,int nr,int nc){
+ncut_seg ncut_main_seg_from_file(char* filename,int nr,int nc){
     int size[5]={0};
     int imagesize=nr*nc;
     int*seglable=NEWA(int,imagesize);
     int i=0,j=0;
-    int initial_lablenum=5;
-    int lablenum=initial_lablenum;
+    //int initial_lablenum=5;
+    int lablenum=5;
     ncut_seg nseg;
-    int initial_seglable[nr*nc];
-    int noise_lable=0;
+    //int initial_seglable[nr*nc];
+    //int noise_lable=0;
     FILE *fp = fopen(filename, "r");
     if (!fp) {
         printf("Can't open %s!\n", filename);
         exit(1);
     }
     for (i = 0; i < nr; ++i) {
-        fscanf(fp, "%d", &initial_seglable[i*nc]);
+        fscanf(fp, "%d", &seglable[i*nc]);
         for (j = 1; j < nc; ++j) {
-            fscanf(fp, ",%d", &initial_seglable[i*nc+j]);
+            fscanf(fp, ",%d", &seglable[i*nc+j]);
         }
     }
     fclose(fp);
-    for(i=0;i<imagesize;++i){
-        seglable[i]=initial_seglable[i];
-    }
+    //for(i=0;i<imagesize;++i){
+        //seglable[i]=initial_seglable[i];
+    //}
     
-    for(i=0;i<initial_lablenum;++i){
-        size[i]=count_segarea(initial_seglable,imagesize,i+1);
+    for(i=0;i<lablenum;++i){
+        size[i]=count_segarea(seglable,imagesize,i+1);
         if(size[i]<5*imagesize/100){
             lablenum=lablenum-1;
             for(j=0;j<imagesize;++j){
-                if(initial_seglable[j]==i+1){
-                    noise_lable=seglable[j];
-                    seglable[j]=0;
-                }
-            }
-            
-            for(j=0;j<imagesize;++j){
-                if(seglable[j]>noise_lable)
-                    seglable[j]=seglable[j]-1;
-            }
+				 if(seglable[j]==i+1)
+					seglable[j]=0;
+				 else if(seglable[j]>i+1)
+					--seglable[j];
+			}
+		    --i;
+		}
+	}
+    
+    nseg.nc=nc;
+    nseg.nr=nr;
+    nseg.lablenum=lablenum;
+    nseg.seglable=seglable;   
+    return nseg;
+}
+
+ncut_seg ncut_main_seg_from_memory(int* seglable, int nr, int nc){
+    int size[5]={0};
+    int imagesize=nr*nc;
+    //int*seglable=NEWA(int,imagesize);
+    int i=0,j=0;
+    //int initial_lablenum=5;
+    int lablenum=5;
+    ncut_seg nseg;
+    //int initial_seglable[nr*nc];
+    //int noise_lable=0;
+    //FILE *fp = fopen(filename, "r");
+    if (!seglable) {
+        printf("seglable points to NULL.\n");
+        exit(1);
+    }
+	/*
+    for (i = 0; i < nr; ++i) {
+        fscanf(fp, "%d", &seglable[i*nc]);
+        for (j = 1; j < nc; ++j) {
+            fscanf(fp, ",%d", &seglable[i*nc+j]);
         }
     }
+    fclose(fp);
+	*/
+    //for(i=0;i<imagesize;++i){
+        //seglable[i]=initial_seglable[i];
+    //}
+    
+    for(i=0;i<lablenum;++i){
+        size[i]=count_segarea(seglable,imagesize,i+1);
+        if(size[i]<5*imagesize/100){
+            lablenum=lablenum-1;
+            for(j=0;j<imagesize;++j){
+				 if(seglable[j]==i+1)
+					seglable[j]=0;
+				 else if(seglable[j]>i+1)
+					--seglable[j];
+			}
+		    --i;
+		}
+	}
     
     nseg.nc=nc;
     nseg.nr=nr;

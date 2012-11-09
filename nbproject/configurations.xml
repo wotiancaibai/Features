@@ -4,10 +4,18 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>ICgraph.h</itemPath>
+      <itemPath>computeEdges.h</itemPath>
+      <itemPath>computeW.h</itemPath>
+      <itemPath>discretisation.h</itemPath>
       <itemPath>feature.h</itemPath>
       <itemPath>image.h</itemPath>
       <itemPath>imgfeatures.h</itemPath>
+      <itemPath>matrixUtils.h</itemPath>
+      <itemPath>ncutW.h</itemPath>
       <itemPath>sift.h</itemPath>
+      <itemPath>sparsifyc.h</itemPath>
+      <itemPath>spmtimesd.h</itemPath>
       <itemPath>tools.h</itemPath>
       <itemPath>utils.h</itemPath>
     </logicalFolder>
@@ -18,11 +26,19 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>ICgraph.cpp</itemPath>
+      <itemPath>computeEdges.cpp</itemPath>
+      <itemPath>computeW.cpp</itemPath>
+      <itemPath>discretisation.cpp</itemPath>
       <itemPath>feature.c</itemPath>
       <itemPath>image.c</itemPath>
       <itemPath>imgfeatures.c</itemPath>
-      <itemPath>main.c</itemPath>
+      <itemPath>main.cpp</itemPath>
+      <itemPath>matrixUtils.cpp</itemPath>
+      <itemPath>ncutW.cpp</itemPath>
       <itemPath>sift.c</itemPath>
+      <itemPath>sparsifyc.cpp</itemPath>
+      <itemPath>spmtimesd.cpp</itemPath>
       <itemPath>tools.c</itemPath>
       <itemPath>utils.c</itemPath>
     </logicalFolder>
@@ -46,13 +62,23 @@
         <compilerSet>default</compilerSet>
       </toolsSet>
       <compileType>
+        <ccTool>
+          <incDir>
+            <pElem>arpack++/include</pElem>
+            <pElem>Eigen</pElem>
+          </incDir>
+          <commandLine>-std=c++0x</commandLine>
+        </ccTool>
         <linkerTool>
+          <stripSymbols>true</stripSymbols>
           <linkerLibItems>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
             <linkerOptionItem>`pkg-config --libs opencv`</linkerOptionItem>
             <linkerOptionItem>`pkg-config --libs gtk+-2.0`</linkerOptionItem>
             <linkerOptionItem>`pkg-config --libs fftw3`</linkerOptionItem>
+            <linkerOptionItem>-L/usr/lib -larpack</linkerOptionItem>
           </linkerLibItems>
+          <commandLine>-L/usr/lib -larpack</commandLine>
         </linkerTool>
       </compileType>
     </conf>
@@ -66,7 +92,12 @@
           <developmentMode>5</developmentMode>
         </cTool>
         <ccTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
+          <incDir>
+            <pElem>arpack++/include</pElem>
+            <pElem>Eigen</pElem>
+          </incDir>
+          <commandLine>-std=c++0x</commandLine>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
@@ -75,12 +106,16 @@
           <developmentMode>5</developmentMode>
         </asmTool>
         <linkerTool>
+          <stripSymbols>true</stripSymbols>
+          <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
             <linkerOptionItem>`pkg-config --libs opencv`</linkerOptionItem>
             <linkerOptionItem>`pkg-config --libs gtk+-2.0`</linkerOptionItem>
             <linkerOptionItem>`pkg-config --libs fftw3`</linkerOptionItem>
+            <linkerOptionItem>-L/usr/lib -larpack -lblas</linkerOptionItem>
           </linkerLibItems>
+          <commandLine>-L/usr/lib -larpack</commandLine>
         </linkerTool>
       </compileType>
     </conf>
